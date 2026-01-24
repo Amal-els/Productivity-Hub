@@ -1,0 +1,482 @@
+@{
+    ViewData["Title"] = "DAG Hub";
+    var currentTab = ViewData["CurrentTab"]?.ToString() ?? "Dashboard";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head> 
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 32px 40px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .tab-navigation {
+            display: flex;
+            padding: 16px 24px 0 24px;
+            gap: 8px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tab-navigation::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 24px;
+            text-decoration: none;
+            color: #64748b;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 12px 12px 0 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            white-space: nowrap;
+            border: 2px solid transparent;
+            border-bottom: none;
+        }
+
+        .tab-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 80%;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px 2px 0 0;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-link:hover {
+            color: #334155;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .tab-link.active {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.08);
+            font-weight: 600;
+        }
+
+        .tab-link.active::before {
+            transform: translateX(-50%) scaleX(1);
+        }
+
+        .tab-icon {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-link:hover .tab-icon {
+            transform: scale(1.1);
+        }
+
+        .tab-link.active .tab-icon {
+            animation: iconPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @@keyframes iconPop {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        .content-area {
+            padding: 40px;
+            min-height: 600px;
+            animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @@keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Floating particles background effect */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 15s infinite;
+        }
+
+        .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
+        .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
+        .particle:nth-child(4) { left: 40%; animation-delay: 1s; }
+        .particle:nth-child(5) { left: 50%; animation-delay: 3s; }
+        .particle:nth-child(6) { left: 60%; animation-delay: 5s; }
+        .particle:nth-child(7) { left: 70%; animation-delay: 2s; }
+        .particle:nth-child(8) { left: 80%; animation-delay: 4s; }
+        .particle:nth-child(9) { left: 90%; animation-delay: 1s; }
+
+        @@keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5568d3, #6a4093);
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .app-container {
+                padding: 16px;
+            }
+
+            .header {
+                padding: 24px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .tab-link {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+
+            .content-area {
+                padding: 24px;
+            }
+
+             .email-sidebar {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+        }
+        .email-content {
+            min-height: 100vh;
+        }
+        .nav-link.active {
+            background-color: #e9ecef;
+            font-weight: 600;
+        }
+        .compose-btn {
+            margin-bottom: 1.5rem;
+        }
+        .email-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .email-row:hover {
+            background-color: #f8f9fa;
+        }
+        .unread {
+            font-weight: 600;
+        }
+
+
+        }
+    </style>
+</head>
+<body>
+    <div class="particles">
+         @for (int i = 0; i < 9; i++)
+        {
+            <div class="particle"></div>
+        }
+    </div>
+
+    <div class="app-container">
+        <div class="header d-flex align-items-center justify-content-between position-relative">
+            <h1>✨ DAG Hub</h1>
+        
+            <!-- Right side: Settings + Logout -->
+            <div class="header-actions d-flex gap-2">
+                <!-- Settings Button -->
+                <a href="@Url.Action("Index", "Settings")" class="btn btn-light btn-sm shadow-sm d-flex align-items-center justify-content-center"
+                style="width:50px; height:50px; border-radius:50%;" title="Settings">
+                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <circle cx="12" cy="12" r="3" stroke="#000000" stroke-width="1.5"></circle> <path d="M13.7654 2.15224C13.3978 2 12.9319 2 12 2C11.0681 2 10.6022 2 10.2346 2.15224C9.74457 2.35523 9.35522 2.74458 9.15223 3.23463C9.05957 3.45834 9.0233 3.7185 9.00911 4.09799C8.98826 4.65568 8.70226 5.17189 8.21894 5.45093C7.73564 5.72996 7.14559 5.71954 6.65219 5.45876C6.31645 5.2813 6.07301 5.18262 5.83294 5.15102C5.30704 5.08178 4.77518 5.22429 4.35436 5.5472C4.03874 5.78938 3.80577 6.1929 3.33983 6.99993C2.87389 7.80697 2.64092 8.21048 2.58899 8.60491C2.51976 9.1308 2.66227 9.66266 2.98518 10.0835C3.13256 10.2756 3.3397 10.437 3.66119 10.639C4.1338 10.936 4.43789 11.4419 4.43786 12C4.43783 12.5581 4.13375 13.0639 3.66118 13.3608C3.33965 13.5629 3.13248 13.7244 2.98508 13.9165C2.66217 14.3373 2.51966 14.8691 2.5889 15.395C2.64082 15.7894 2.87379 16.193 3.33973 17C3.80568 17.807 4.03865 18.2106 4.35426 18.4527C4.77508 18.7756 5.30694 18.9181 5.83284 18.8489C6.07289 18.8173 6.31632 18.7186 6.65204 18.5412C7.14547 18.2804 7.73556 18.27 8.2189 18.549C8.70224 18.8281 8.98826 19.3443 9.00911 19.9021C9.02331 20.2815 9.05957 20.5417 9.15223 20.7654C9.35522 21.2554 9.74457 21.6448 10.2346 21.8478C10.6022 22 11.0681 22 12 22C12.9319 22 13.3978 22 13.7654 21.8478C14.2554 21.6448 14.6448 21.2554 14.8477 20.7654C14.9404 20.5417 14.9767 20.2815 14.9909 19.902C15.0117 19.3443 15.2977 18.8281 15.781 18.549C16.2643 18.2699 16.8544 18.2804 17.3479 18.5412C17.6836 18.7186 17.927 18.8172 18.167 18.8488C18.6929 18.9181 19.2248 18.7756 19.6456 18.4527C19.9612 18.2105 20.1942 17.807 20.6601 16.9999C21.1261 16.1929 21.3591 15.7894 21.411 15.395C21.4802 14.8691 21.3377 14.3372 21.0148 13.9164C20.8674 13.7243 20.6602 13.5628 20.3387 13.3608C19.8662 13.0639 19.5621 12.558 19.5621 11.9999C19.5621 11.4418 19.8662 10.9361 20.3387 10.6392C20.6603 10.4371 20.8675 10.2757 21.0149 10.0835C21.3378 9.66273 21.4803 9.13087 21.4111 8.60497C21.3592 8.21055 21.1262 7.80703 20.6602 7C20.1943 6.19297 19.9613 5.78945 19.6457 5.54727C19.2249 5.22436 18.693 5.08185 18.1671 5.15109C17.9271 5.18269 17.6837 5.28136 17.3479 5.4588C16.8545 5.71959 16.2644 5.73002 15.7811 5.45096C15.2977 5.17191 15.0117 4.65566 14.9909 4.09794C14.9767 3.71848 14.9404 3.45833 14.8477 3.23463C14.6448 2.74458 14.2554 2.35523 13.7654 2.15224Z" stroke="#000000" stroke-width="1.5"></path> </g></svg>
+                </a>
+
+                <!-- Logout Button -->
+                <form method="post" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Account/Login", new { area = "Identity" })">
+                    <button type="submit" class="btn btn-danger btn-sm shadow-sm" style="width:50px; height:50px; border-radius:50%;" title="Logout">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M10 15a.5.5 0 0 1-.5-.5v-2H5.5A1.5 1.5 0 0 1 4 11V5a1.5 1.5 0 0 1 1.5-1.5H9.5v-2a.5.5 0 0 1 1 0v13a.5.5 0 0 1-.5.5z"/>
+                            <path fill-rule="evenodd" d="M15.354 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.647 2.646a.5.5 0 0 0 .708.708l3-3z"/>
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+       
+        
+
+        <div class="main-card">
+           
+            <nav class="tab-navigation d-flex align-items-center justify-content-between">
+                
+                <a href="@Url.Action("Index", "Home")" class="tab-link @(currentTab == "Dashboard" ? "active" : "")">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8v-10h-8v10zm0-18v6h8V3h-8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="@Url.Action("Index", "Calendar")" class="tab-link @(currentTab == "Calendar" ? "active" : "")">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <line x1="16" y1="2" x2="16" y2="6" stroke-width="2" stroke-linecap="round" />
+                        <line x1="8" y1="2" x2="8" y2="6" stroke-width="2" stroke-linecap="round" />
+                        <line x1="3" y1="10" x2="21" y2="10" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    Calendar
+                </a>
+
+                <a href="@Url.Action("Index", "ToDo")" class="tab-link @(currentTab == "ToDo" ? "active" : "")">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M9 11l3 3L22 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    To-Do
+                </a>
+
+                <a href="@Url.Action("Index", "Email")" class="tab-link @(currentTab == "Email" ? "active" : "")">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <polyline points="22,6 12,13 2,6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Email
+                </a>
+
+                <a href="@Url.Action("Index", "Pomodoro")" class="tab-link @(currentTab == "Pomodoro" ? "active" : "")">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <polyline points="12,6 12,12 16,14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Pomodoro
+                </a>
+
+                <a href="@Url.Action("Index", "Meetings")" class="tab-link @(currentTab == "Meetings" ? "active" : "")">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <circle cx="9" cy="7" r="4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Meetings
+                </a>
+
+                <a href="@Url.Action("Index", "Notes")" class="tab-link @(currentTab == "Notes" ? "active" : "")">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <polyline points="14,2 14,8 20,8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        <line x1="16" y1="13" x2="8" y2="13" stroke-width="2" stroke-linecap="round" />
+                        <line x1="16" y1="17" x2="8" y2="17" stroke-width="2" stroke-linecap="round" />
+                        <polyline points="10,9 9,9 8,9" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    Notes
+                </a>
+
+                <a href="@Url.Action("Index", "Assistant")" class="tab-link @(currentTab == "Assistant" ? "active" : "")">
+                    <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Assistant
+                </a>
+                
+            </nav>
+            <div class="container-fluid content-area">
+                <h2 class="mb-4" style="color:#667eea; text-align:left; margin-up: 50px;">📧Email Dashboard</h2>
+            <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 email-sidebar p-3">
+               
+                
+                <a asp-area="Email" asp-page="/Compose" class="btn btn-primary w-100 compose-btn">
+                    <i class="bi bi-plus-lg"></i> + Compose
+                </a>
+                
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Email/Index" ? "active" : "")" 
+                           asp-page="/Email/Index">
+                            <i class="bi bi-house"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Email/Inbox" ? "active" : "")" 
+                           asp-page="/Email/Inbox">
+                            <i class="bi bi-inbox"></i> Inbox
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Email/Sent" ? "active" : "")" 
+                           asp-page="/Email/Sent">
+                            <i class="bi bi-send"></i> Sent
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-star"></i> Starred
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-trash"></i> Trash
+                        </a>
+                    </li>
+                </ul>
+                
+                <hr />
+                
+                <div class="mt-3">
+                    <small class="text-muted">Labels</small>
+                    <ul class="nav flex-column mt-2">
+                        <li class="nav-item">
+                            <a class="nav-link py-1" href="#">
+                                <span class="badge bg-primary">&nbsp;</span> Work
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-1" href="#">
+                                <span class="badge bg-success">&nbsp;</span> Personal
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link py-1" href="#">
+                                <span class="badge bg-warning">&nbsp;</span> Important
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 email-content p-4">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+          
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+
+
+    
+    
+    

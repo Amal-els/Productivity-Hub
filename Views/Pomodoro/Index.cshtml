@@ -1,0 +1,256 @@
+@model List<TeamProject.Models.PomodoroSession>
+
+@{
+    ViewData["Title"] = "Pomodoro";
+    ViewData["CurrentTab"] = "Pomodoro";
+    Layout = "_ProductivityLayout";
+}
+
+<audio id="alarmSound" src="wwwroot/sounds/Cool-alarm-tone-notification-sound.mp3" preload="auto"></audio>
+
+<div class="pomodoro-container text-center">
+
+    <h2 class="mb-4" style="color:#667eea; text-align:left;">🍅 Pomodoro Timer</h2>
+
+    <!-- Circular Timer -->
+    <div class="progress-wrapper">
+        <svg class="progress-ring" width="350" height="350">
+            <circle class="progress-ring-bg" cx="175" cy="175" r="160" />
+            <circle class="progress-ring-circle" cx="175" cy="175" r="160" />
+        </svg>
+
+        <div class="timer-center">
+            <div id="timer" class="timer-text">25:00</div>
+            <div id="session-type" class="session-text">Work Session</div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="mt-4">
+        <button id="start-btn" class="btn btn-success me-2">Start</button>
+        <button id="pause-btn" class="btn btn-warning me-2">Pause</button>
+        <button id="reset-btn" class="btn btn-danger">Reset</button>
+    </div>
+
+    <h3 class="mt-4">Today's Pomodoro History</h3>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Duration</th>
+            </tr>
+        </thead>
+        <tbody id="sessionHistory">
+        @foreach (var s in Model)
+        {
+            <tr>
+                <td>@s.Type</td>
+                <td>@s.StartTime.ToString("HH:mm")</td>
+                <td>@s.EndTime.ToString("HH:mm")</td>
+                <td>@s.Duration.ToString(@"mm\:ss")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+</div>
+
+
+@section Scripts {
+<script>
+    let sessionStartTime;
+    let workDuration =  5;
+    let breakDuration = 5 * 60;
+    let timerDuration = workDuration;
+    let totalDuration = workDuration;
+    let timerInterval;
+    let isWork = true;
+    let audioUnlocked = false;
+
+    const timerEl = document.getElementById("timer");
+    const sessionEl = document.getElementById("session-type");
+    const alarmSound = document.getElementById("alarmSound");
+    const circle = document.querySelector(".progress-ring-circle");
+
+    const radius = 160;
+    const circumference = 2 * Math.PI * radius;
+
+    circle.style.strokeDasharray = circumference;
+    circle.style.strokeDashoffset = 0;
+
+    function unlockAudio() {
+        if (audioUnlocked) return;
+        alarmSound.volume = 0;
+        alarmSound.play().then(() => {
+            alarmSound.pause();
+            alarmSound.currentTime = 0;
+            alarmSound.volume = 1;
+            audioUnlocked = true;
+        }).catch(() => {});
+    }
+
+    function playAlarm() {
+        alarmSound.currentTime = 0;
+        alarmSound.play().catch(() => {});
+    }
+    function stopAlarm() {
+    alarmSound.pause();
+    alarmSound.currentTime = 0;
+    }
+
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function updateCircle() {
+        const progress = timerDuration / totalDuration;
+        circle.style.strokeDashoffset = circumference * (1 - progress);
+    }
+
+    function updateTimer() {
+        timerEl.textContent = formatTime(timerDuration);
+        updateCircle();
+    }
+
+    function saveSession(type) {
+    if (!sessionStartTime) return;
+
+    fetch('/Pomodoro/SaveSession', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            startTime: sessionStartTime.toISOString(), // Correct
+            endTime: new Date().toISOString(),         // Correct
+            type: type                                 // "Work", "Break", "LongBreak"
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const row = `
+            <tr>
+                <td>${data.type}</td>
+                <td>${data.start}</td>
+                <td>${data.end}</td>
+                <td>${data.duration}</td>
+            </tr>
+        `;
+        document.getElementById("sessionHistory").insertAdjacentHTML("afterbegin", row);
+        sessionStartTime = null; // reset
+    })
+    .catch(err => console.error("Failed to save session:", err));
+}
+
+
+    function startTimer() {
+        stopAlarm();
+        clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+            if (timerDuration > 0) {
+                timerDuration--;
+                updateTimer();
+            } else {
+                clearInterval(timerInterval);
+                playAlarm();
+                
+                // Save session
+                saveSession(isWork ? "Work" : "Break");
+                // Prepare next session
+                isWork = !isWork;
+                if (!sessionStartTime) sessionStartTime = new Date();        unlockAudio();
+                totalDuration = isWork ? workDuration : breakDuration;
+                timerDuration = totalDuration;
+                sessionEl.textContent = isWork ? "Work Session" : "Break Session";
+                updateTimer();
+            }
+        }, 1000);
+    }
+    
+    
+
+    document.getElementById("start-btn").addEventListener("click", startTimer);
+    document.getElementById("pause-btn").addEventListener("click", () => clearInterval(timerInterval));
+    document.getElementById("reset-btn").addEventListener("click", () => {
+        clearInterval(timerInterval);
+        saveSession(isWork ? "Work" : "Break"); // Save the current session
+        timerDuration = totalDuration;
+        updateTimer();
+    });
+
+    updateTimer();
+</script>
+}
+
+<style>
+.progress-wrapper {
+    position: relative;
+    width: 350px;   /* Bigger */
+    height: 350px;  /* Bigger */
+    margin: 0 auto;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+    fill: none;
+    stroke: #e5e7eb;
+    stroke-width: 16;  
+}
+
+.progress-ring-circle {
+    fill: none;
+    stroke: #667eea;
+    stroke-width: 16; 
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+}
+
+.timer-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.timer-text {
+    font-size: 5rem;
+    font-weight: 700;
+    color: #667eea;
+}
+
+.session-text {
+    color: #6b7280;
+    font-size: 1.25rem; 
+}
+
+@@media (max-width: 576px) {
+    .progress-wrapper {
+        width: 260px;
+        height: 260px;
+    }
+
+    .progress-ring-bg,
+    .progress-ring-circle {
+        stroke-width: 12;
+    }
+
+    .timer-text {
+        font-size: 3.5rem;
+    }
+
+    .session-text {
+        font-size: 1rem;
+    }
+}
+
+</style>

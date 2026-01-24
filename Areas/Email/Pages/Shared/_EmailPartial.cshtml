@@ -1,0 +1,54 @@
+@model MimeKit.MimeMessage
+
+@{
+    var fromAddress = Model.From.Mailboxes.FirstOrDefault();
+    var fromName = fromAddress?.Name ?? fromAddress?.Address ?? "Unknown";
+    var messageId = Model.MessageId ?? Guid.NewGuid().ToString();
+}
+
+<tr class="email-row">
+    <td class="align-middle">
+        <div class="d-flex align-items-center">
+            <div class="me-2">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                     style="width: 40px; height: 40px; font-weight: bold;">
+                    @(fromName.Length > 0 ? fromName[0].ToString().ToUpper() : "?")
+                </div>
+            </div>
+            <div>
+                <strong>@fromName</strong>
+                @if (fromAddress != null)
+                {
+                    <br />
+                    <small class="text-muted">@fromAddress.Address</small>
+                }
+            </div>
+        </div>
+    </td>
+    <td class="align-middle">
+        <strong>@Model.Subject</strong>
+        <br />
+        <small class="text-muted">@(Model.TextBody?.Substring(0, Math.Min(50, Model.TextBody.Length )))</small>
+    </td>
+    <td class="align-middle">
+        <small>@Model.Date.ToLocalTime().ToString("MMM dd, h:mm tt")</small>
+    </td>
+    <td class="align-middle">
+        <div class="btn-group btn-group-sm" role="group">
+            <form method="post" asp-page-handler="MarkAsRead" class="d-inline">
+                <input type="hidden" name="messageId" value="@messageId" />
+                <button type="submit" class="btn btn-outline-primary" title="Mark as read">
+                    <i class="bi bi-envelope-open"></i>
+                </button>
+            </form>
+            <form method="post" asp-page-handler="Delete" class="d-inline">
+                <input type="hidden" name="messageId" value="@messageId" />
+                <button type="submit" class="btn btn-outline-danger" 
+                        onclick="return confirm('Delete this email?')" 
+                        title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
+    </td>
+</tr>

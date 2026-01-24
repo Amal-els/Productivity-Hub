@@ -1,0 +1,122 @@
+@page
+@model TeamProject.Areas.Email.Pages.ComposeModel
+@{
+    ViewData["Title"] = "Compose Email";
+    Layout = "_ProductivityLayout";
+}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-pencil-square"></i> Compose New Email
+                </h4>
+            </div>
+            <div class="card-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong>Please fix the following errors:</strong>
+                        <ul class="mb-0 mt-2">
+                            @foreach (var state in ViewData.ModelState)
+                            {
+                                foreach (var error in state.Value.Errors)
+                                {
+                                    <li><strong>@state.Key:</strong> @error.ErrorMessage</li>
+                                }
+                            }
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                
+                <form method="post" id="emailForm">
+                    <div class="mb-3">
+                        <label asp-for="To" class="form-label">
+                            <i class="bi bi-person"></i> To
+                        </label>
+                        <input asp-for="To" class="form-control" placeholder="recipient@example.com" />
+                        <span asp-validation-for="To" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Subject" class="form-label">
+                            <i class="bi bi-chat-left-text"></i> Subject
+                        </label>
+                        <input asp-for="Subject" class="form-control" placeholder="Enter subject" />
+                        <span asp-validation-for="Subject" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Body" class="form-label">
+                            <i class="bi bi-file-text"></i> Message
+                        </label>
+                        <textarea asp-for="Body" class="form-control" rows="10" placeholder="Type your message here..."></textarea>
+                        <span asp-validation-for="Body" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input asp-for="IsHtml" class="form-check-input" type="checkbox" checked />
+                        <label asp-for="IsHtml" class="form-check-label">
+                            Send as HTML
+                        </label>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Send Email
+                        </button>
+                        <a asp-page="/Inbox" asp-area="Email" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('emailForm');
+            
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    console.log('📧 Form submit event triggered');
+                    console.log('To:', document.querySelector('[name="To"]').value);
+                    console.log('Subject:', document.querySelector('[name="Subject"]').value);
+                    console.log('Body:', document.querySelector('[name="Body"]').value);
+                    console.log('IsHtml:', document.querySelector('[name="IsHtml"]').checked);
+                    
+                    // Log FormData
+                    const formData = new FormData(form);
+                    console.log('📝 FormData entries:');
+                    for (let [key, value] of formData.entries()) {
+                        console.log(`  ${key}: ${value}`);
+                    }
+                });
+            } else {
+                console.error('❌ Form with id="emailForm" not found!');
+            }
+        });
+    </script>
+}
