@@ -1,7 +1,209 @@
-﻿@{
-    Layout = "_ProductivityLayout";
-    ViewData["CurrentTab"] = "Calendar";
+﻿@model TeamProject.ViewModels.CalendarViewModel
+@{
+    Layout = "~/Views/Shared/_ProductivityLayout.cshtml";
+    ViewData["Title"] = "Calendar";
 }
 
-<h2 style="color: #667eea; margin-bottom: 20px;">📅 Calendar</h2>
-<p style="color: #64748b;">Calendar content will go here. This is where your team member will build the calendar feature!</p>
+@section Styles {
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+    <style>
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .calendar-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .calendar-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+            .btn-secondary:hover {
+                background: #e2e8f0;
+            }
+
+        .view-switcher {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .view-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+            .view-btn.active {
+                background: white;
+                color: #667eea;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+        #calendar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .fc {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .fc-event {
+            border-radius: 6px;
+            padding: 4px 8px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .fc-daygrid-event {
+            margin: 2px 0;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        @@media (max-width: 768px) {
+            .calendar-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .calendar-actions {
+                width: 100%;
+            }
+
+            .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+        </svg>
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="calendar-header">
+    <h2 class="calendar-title">📅 My Calendar</h2>
+
+    <div class="calendar-actions">
+        <div class="view-switcher">
+            <button class="view-btn @(Model.View == "day" ? "active" : "")" onclick="changeView('day')">Day</button>
+            <button class="view-btn @(Model.View == "week" ? "active" : "")" onclick="changeView('week')">Week</button>
+            <button class="view-btn @(Model.View == "month" ? "active" : "")" onclick="changeView('month')">Month</button>
+        </div>
+
+        <a href="@Url.Action("Create")" class="btn btn-primary">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            New Event
+        </a>
+    </div>
+</div>
+
+<div id="calendar"></div>
+
+@section Scripts {
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                firstDay: 1,
+
+                initialView: '@(
+                    Model.View == "day" ? "timeGridDay" :
+                    Model.View == "week" ? "timeGridWeek" :
+                    "dayGridMonth"
+                )',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: ''
+                },
+                events: '@Url.Action("GetEvents")',
+                eventClick: function(info) {
+                    window.location.href = '@Url.Action("ViewEvent")/' + info.event.id;
+                },
+                dateClick: function(info) {
+                    window.location.href = '@Url.Action("Create")?date=' + info.dateStr;
+                },
+                height: 'auto',
+                themeSystem: 'standard',
+                nowIndicator: true,
+
+            });
+            calendar.render();
+        });
+
+        function changeView(view) {
+            window.location.href = '@Url.Action("Index")?view=' + view;
+        }
+    </script>
+}

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamProject.Data;
 
@@ -11,9 +12,11 @@ using TeamProject.Data;
 namespace TeamProject.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260121111502_fixedNullable")]
+    partial class fixedNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -179,12 +182,10 @@ namespace TeamProject.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("LastName")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -267,6 +268,9 @@ namespace TeamProject.Data.Migrations
                     b.Property<bool>("IsAllDay")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsShared")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Location")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -322,6 +326,7 @@ namespace TeamProject.Data.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ErrorMessage")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsSent")
@@ -364,9 +369,6 @@ namespace TeamProject.Data.Migrations
                     b.Property<int>("CalendarEventId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Email")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsOrganizer")
                         .HasColumnType("bit");
 
@@ -379,6 +381,7 @@ namespace TeamProject.Data.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("UserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -386,8 +389,7 @@ namespace TeamProject.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.HasIndex("CalendarEventId", "UserId")
-                        .IsUnique()
-                        .HasFilter("[UserId] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("EventParticipants");
                 });
@@ -503,7 +505,8 @@ namespace TeamProject.Data.Migrations
                     b.HasOne("TeamProject.Models.ApplicationUser", "User")
                         .WithMany("EventParticipations")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("CalendarEvent");
 

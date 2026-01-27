@@ -1,0 +1,367 @@
+﻿@model TeamProject.Models.CalendarEvent
+@{
+    Layout = "~/Views/Shared/_ProductivityLayout.cshtml";
+    ViewData["Title"] = "Event Details";
+}
+
+@section Styles {
+    <style>
+        .event-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 24px;
+            transition: all 0.3s ease;
+        }
+
+            .back-link:hover {
+                gap: 12px;
+            }
+
+        .event-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .event-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            color: white;
+        }
+
+        .event-type-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .event-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .event-meta {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            opacity: 0.95;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+
+        .event-body {
+            padding: 40px;
+        }
+
+        .detail-section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .detail-content {
+            font-size: 16px;
+            color: #1e293b;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border-left: 3px solid #667eea;
+        }
+
+        .detail-icon {
+            width: 24px;
+            height: 24px;
+            color: #667eea;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .detail-info {
+            flex: 1;
+        }
+
+        .detail-label {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            color: #1e293b;
+            font-weight: 500;
+        }
+
+        .color-indicator {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .event-actions {
+            display: flex;
+            gap: 12px;
+            padding: 24px 40px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            }
+
+        .btn-secondary {
+            background: white;
+            color: #475569;
+            border: 2px solid #e2e8f0;
+        }
+
+            .btn-secondary:hover {
+                background: #f8fafc;
+            }
+
+        .empty-state {
+            text-align: center;
+            padding: 24px;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        @@media (max-width: 768px) {
+            .event-header
+
+        {
+            padding: 24px;
+        }
+
+        .event-title {
+            font-size: 24px;
+        }
+
+        .event-meta {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .event-body {
+            padding: 24px;
+        }
+
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .event-actions {
+            flex-direction: column;
+            padding: 16px 24px;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        }
+    </style>
+}
+
+<div class="event-container">
+    <a href="@Url.Action("Index")" class="back-link">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Calendar
+    </a>
+
+    <div class="event-card">
+        <div class="event-header">
+            <div class="event-type-badge">@Model.EventType</div>
+            <h1 class="event-title">@Model.Title</h1>
+            <div class="event-meta">
+                <div class="meta-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    @if (Model.StartTime.Date == Model.EndTime.Date)
+                    {
+                        <span>@Model.StartTime.ToString("dddd, MMMM dd, yyyy")</span>
+                    }
+                    else
+                    {
+                        <span>@Model.StartTime.ToString("MMM dd, yyyy") - @Model.EndTime.ToString("MMM dd, yyyy")</span>
+                    }
+                </div>
+
+                <div class="meta-item">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    @if (Model.IsAllDay)
+                    {
+                        <span>All Day</span>
+                    }
+                    else
+                    {
+                        <span>@Model.StartTime.ToString("h:mm tt") - @Model.EndTime.ToString("h:mm tt")</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="event-body">
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <div class="detail-section">
+                    <h3 class="section-title">Description</h3>
+                    <div class="detail-content">@Model.Description</div>
+                </div>
+            }
+
+            <div class="detail-section">
+                <h3 class="section-title">Event Details</h3>
+                <div class="detail-grid">
+                    @if (!string.IsNullOrWhiteSpace(Model.Location))
+                    {
+                        <div class="detail-item">
+                            <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <div class="detail-info">
+                                <div class="detail-label">Location</div>
+                                <div class="detail-value">@Model.Location</div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.HasReminder)
+                    {
+                        <div class="detail-item">
+                            <svg class="detail-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <div class="detail-info">
+                                <div class="detail-label">Reminder</div>
+                                <div class="detail-value">
+                                    @if (Model.ReminderMinutesBefore >= 1440)
+                                    {
+                                        <span>@(Model.ReminderMinutesBefore / 1440) day(s) before</span>
+                                    }
+                                    else if (Model.ReminderMinutesBefore >= 60)
+                                    {
+                                        <span>@(Model.ReminderMinutesBefore / 60) hour(s) before</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@Model.ReminderMinutesBefore minutes before</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    
+                </div>
+            </div>
+        </div>
+
+        <div class="event-actions">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Event
+            </a>
+            
+        </div>
+    </div>
+</div>
