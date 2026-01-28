@@ -1,0 +1,116 @@
+﻿@using Microsoft.AspNetCore.Identity
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_ProductivityLayout";
+    ViewData["CurrentTab"] = "Dashboard"; // Makes Dashboard tab active
+}
+@inject UserManager<ApplicationUser> UserManager
+
+<h2 class="mb-4" style="color:#667eea; text-align:left;">📊 Dashboard</h2>
+
+
+<div class="container mt-4">
+    <h2 class="mb-4">
+        Welcome back, @((await UserManager.GetUserAsync(User))?.DisplayName ?? User.Identity.Name)!
+    </h2>
+    <div class="row g-4">
+
+        <!-- Pomodoro Widget -->
+        <div class="col-md-3">
+            <div class="card text-white bg-gradient-primary shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Pomodoro</h5>
+                    <p class="card-text display-6">4</p>
+                    <small>Sessions today</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Widget -->
+        <div class="col-md-3">
+            <div class="card text-white bg-gradient-success shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">To-Do</h5>
+                    <p class="card-text display-6">12</p>
+                    <small>Tasks pending</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meetings Widget -->
+        <div class="col-md-3">
+            <div class="card text-white bg-gradient-warning shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Meetings</h5>
+                    <p class="card-text display-6">3</p>
+                    <small>Scheduled today</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes Widget -->
+        <div class="col-md-3">
+            <div class="card text-white bg-gradient-info shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Notes</h5>
+                    <p class="card-text display-6">27</p>
+                    <small>Notes saved</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Overview -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5>Weekly Productivity Overview</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="weeklyChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Pomodoro Sessions',
+                    data: [3, 4, 5, 2, 4, 3, 0],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                },{
+                    label: 'Tasks Completed',
+                    data: [5, 6, 8, 3, 7, 4, 1],
+                    borderColor: '#764ba2',
+                    backgroundColor: 'rgba(118, 75, 162, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+    </script>
+}

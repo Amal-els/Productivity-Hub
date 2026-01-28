@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Productivity Hub</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', sans-serif;
+            padding: 1rem;
+        }
+
+        /* Guest container */
+        .guest-container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 1rem;
+            padding: 3rem 2rem;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .guest-container h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 700;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .guest-container button.btn-primary {
+                    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+        /* Responsive adjustments */
+        @@media (max-width: 576px) {
+            .guest-container {
+                padding: 2rem 1.5rem;
+                max-width: 100%;
+            }
+            .guest-container h1 {
+                font-size: 1.75rem;
+            }
+        }
+
+        /* Floating particles background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        .particle:nth-child(1){ left:10%; animation-delay:0s; }
+        .particle:nth-child(2){ left:25%; animation-delay:3s; }
+        .particle:nth-child(3){ left:40%; animation-delay:5s; }
+        .particle:nth-child(4){ left:55%; animation-delay:2s; }
+        .particle:nth-child(5){ left:70%; animation-delay:4s; }
+        .particle:nth-child(6){ left:85%; animation-delay:1s; }
+
+        @@keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity:0; }
+            10%, 90% { opacity:1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity:0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <div class="guest-container">
+        @RenderBody()
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Optional page scripts -->
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

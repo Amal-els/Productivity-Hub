@@ -1,0 +1,434 @@
+@page
+@model TeamProject.Areas.Email.Pages.ComposeModel
+@{
+    ViewData["Title"] = "Compose Email";
+    Layout = "_EmailLayout";
+}
+
+<style>
+    .compose-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 32px;
+        animation: slideDown 0.5s ease-out;
+    }
+
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .compose-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        animation: iconFloat 3s ease-in-out infinite;
+    }
+
+    @@keyframes iconFloat {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .compose-title {
+        font-size: 28px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0;
+    }
+
+    .compose-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .compose-card-header {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+        padding: 24px 32px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .compose-card-header h5 {
+        margin: 0;
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 18px;
+    }
+
+    .compose-card-body {
+        padding: 32px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 10px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-label i {
+        color: #667eea;
+        font-size: 16px;
+    }
+
+    .form-control {
+        border: 2px solid rgba(102, 126, 234, 0.1);
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-size: 15px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: rgba(102, 126, 234, 0.02);
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        background: white;
+        outline: none;
+    }
+
+    .form-control::placeholder {
+        color: #94a3b8;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 200px;
+        font-family: inherit;
+        line-height: 1.6;
+    }
+
+    .text-danger {
+        font-size: 13px;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #ef4444;
+        font-weight: 500;
+    }
+
+    .text-danger::before {
+        content: "⚠";
+        font-size: 14px;
+    }
+
+    .form-check {
+        background: rgba(102, 126, 234, 0.03);
+        padding: 16px 20px;
+        border-radius: 12px;
+        border: 2px solid rgba(102, 126, 234, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .form-check:hover {
+        background: rgba(102, 126, 234, 0.05);
+        border-color: rgba(102, 126, 234, 0.2);
+    }
+
+    .form-check-input {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(102, 126, 234, 0.3);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .form-check-input:checked {
+        background-color: #667eea;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+    }
+
+    .form-check-input:focus {
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+        border-color: #667eea;
+    }
+
+    .form-check-label {
+        font-weight: 500;
+        color: #334155;
+        cursor: pointer;
+        user-select: none;
+        margin-left: 8px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding-top: 24px;
+        border-top: 2px solid rgba(0, 0, 0, 0.06);
+        margin-top: 24px;
+    }
+
+    .btn {
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    .btn-secondary {
+        background: rgba(100, 116, 139, 0.1);
+        color: #64748b;
+        border: 2px solid rgba(100, 116, 139, 0.2);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(100, 116, 139, 0.15);
+        color: #475569;
+        border-color: rgba(100, 116, 139, 0.3);
+    }
+
+    .alert {
+        border: none;
+        border-radius: 14px;
+        padding: 18px 24px;
+        margin-bottom: 24px;
+        font-weight: 500;
+        animation: slideDown 0.4s ease-out;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .alert-success {
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(22, 163, 74, 0.1) 100%);
+        color: #15803d;
+        border-left: 4px solid #22c55e;
+    }
+
+    .alert-success::before {
+        content: "✓";
+        font-size: 20px;
+        font-weight: bold;
+        color: #22c55e;
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%);
+        color: #dc2626;
+        border-left: 4px solid #ef4444;
+    }
+
+    .alert-danger::before {
+        content: "✕";
+        font-size: 20px;
+        font-weight: bold;
+        color: #ef4444;
+    }
+
+    .btn-close {
+        opacity: 0.5;
+        transition: all 0.3s ease;
+    }
+
+    .btn-close:hover {
+        opacity: 1;
+        transform: rotate(90deg);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .compose-header {
+            margin-bottom: 24px;
+        }
+
+        .compose-title {
+            font-size: 22px;
+        }
+
+        .compose-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+        }
+
+        .compose-card-body {
+            padding: 24px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="compose-header">
+    <div class="compose-icon">
+        🖊️
+    </div>
+    <h2 class="compose-title">Compose New Email</h2>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="compose-card">
+    <div class="compose-card-header">
+        <i class="bi bi-pencil-square" style="color: #667eea; font-size: 20px;"></i>
+        <h5>Message Details</h5>
+    </div>
+    <div class="compose-card-body">
+        <form method="post" asp-antiforgery="true">
+            <div class="mb-4">
+                <label asp-for="To" class="form-label">
+                    <i class="bi bi-person-fill"></i>
+                    Recipient
+                </label>
+                <input asp-for="To" id="toField" class="form-control" placeholder="recipient@example.com" type="email" />
+                <span asp-validation-for="To" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Subject" class="form-label">
+                    <i class="bi bi-chat-left-text-fill"></i>
+                    Subject
+                </label>
+                <input asp-for="Subject" id="subjectField" class="form-control" placeholder="Enter subject" type="text" />
+                <span asp-validation-for="Subject" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Body" class="form-label">
+                    <i class="bi bi-file-text-fill"></i>
+                    Message Body
+                </label>
+                <textarea asp-for="Body" class="form-control" rows="12" placeholder="Write your message here..."></textarea>
+                <span asp-validation-for="Body" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4 form-check">
+                <input asp-for="IsHtml" class="form-check-input" type="checkbox" id="htmlCheck" />
+                <label asp-for="IsHtml" class="form-check-label" for="htmlCheck">
+                    <i class="bi bi-code-slash me-1"></i>
+                    Send as HTML formatted email
+                </label>
+            </div>
+
+            <div class="action-buttons">
+                <button type="submit" class="btn btn-primary">
+                    
+                    Send Email
+                </button>
+                <a asp-area="Email" asp-page="/Index" class="btn btn-secondary">
+                    <i class="bi bi-x-circle-fill"></i>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Pre-fill form if replying to an email
+        document.addEventListener('DOMContentLoaded', function() {
+            const replyTo = sessionStorage.getItem('replyTo');
+            const replySubject = sessionStorage.getItem('replySubject');
+            
+            if (replyTo) {
+                // Extract email address from "Name <email>" format
+                const emailMatch = replyTo.match(/<(.+?)>/);
+                const email = emailMatch ? emailMatch[1] : replyTo;
+                
+                document.getElementById('toField').value = email;
+                
+                // Clear from sessionStorage
+                sessionStorage.removeItem('replyTo');
+            }
+            
+            if (replySubject) {
+                document.getElementById('subjectField').value = replySubject;
+                
+                // Clear from sessionStorage
+                sessionStorage.removeItem('replySubject');
+            }
+        });
+    </script>
+}
