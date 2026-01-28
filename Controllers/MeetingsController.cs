@@ -135,9 +135,11 @@ namespace TeamProject.Controllers
                     .ThenInclude(e => e.Participants)
                         .ThenInclude(p => p.User)
                 .Include(m => m.Organizer)
-                .FirstOrDefaultAsync(m => (m.Id == id || m.CalendarEventId == id) &&
+                .Where(m => (m.Id == id || m.CalendarEventId == id) &&
                     (m.OrganizerId == userId ||
-                     m.CalendarEvent.Participants.Any(p => p.UserId == userId)));
+                     m.CalendarEvent.Participants.Any(p => p.UserId == userId)))
+                .OrderBy(m => m.Id == id ? 0 : 1) // Prioritize m.Id matches
+                .FirstOrDefaultAsync();
 
             if (meeting == null)
             {
