@@ -515,11 +515,11 @@
                     </svg>
                     @if (Model.StartTime.Date == Model.EndTime.Date)
                     {
-                        <span>@Model.StartTime.ToLocalTime().ToString("dddd, MMMM dd, yyyy")</span>
+                        <span>@Model.StartTime.ToString("dddd, MMMM dd, yyyy")</span>
                     }
                     else
                     {
-                        <span>@Model.StartTime.ToLocalTime().ToString("MMM dd, yyyy") - @Model.EndTime.ToLocalTime().ToString("MMM dd, yyyy")</span>
+                        <span>@Model.StartTime.ToString("MMM dd, yyyy") - @Model.EndTime.ToString("MMM dd, yyyy")</span>
                     }
                 </div>
                 <div class="meta-item">

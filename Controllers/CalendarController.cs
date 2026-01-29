@@ -15,13 +15,13 @@ namespace TeamProject.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IEmailService _emailService;
+        private readonly IEmailNotifService _emailService;
         private readonly ILogger<CalendarController> _logger;
 
         public CalendarController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            IEmailService emailService,
+            IEmailNotifService emailService,
             ILogger<CalendarController> logger)
         {
             _context = context;

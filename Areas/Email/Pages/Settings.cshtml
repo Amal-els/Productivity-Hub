@@ -1,0 +1,66 @@
+@page
+@model TeamProject.Areas.Email.Pages.SettingsModel
+@{
+    ViewData["Title"] = "Email Settings";
+    Layout = "_EmailLayout";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h2 class="mb-0">Email Settings</h2>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Info"] != null)
+                    {
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            @TempData["Info"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.StatusMessage))
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @Model.StatusMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Note:</strong> You need a Gmail App Password, not your regular password.
+                        <a href="https://support.google.com/accounts/answer/185833" target="_blank">Learn how</a>
+                    </div>
+
+                    <form method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label asp-for="Input.EmailPassword" class="form-label">Email Password (App Password)</label>
+                            <input type="text" 
+                            name="Input.EmailPassword"
+                            class="form-control"
+                            value="@Model.Input?.EmailPassword"
+                            placeholder="Enter your app password (16 characters)" />
+
+                            <span asp-validation-for="Input.EmailPassword" class="text-danger"></span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-2"></i>Save
+                            </button>
+                            <a href="~/Email/Index" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,820 @@
+@model List<TeamProject.Models.PomodoroSession>
+
+@{
+    ViewData["Title"] = "Pomodoro";
+    ViewData["CurrentTab"] = "Pomodoro";
+    Layout = "_ProductivityLayout";
+}
+
+<audio id="alarmSound" src="/sounds/Cool-alarm-tone-notification-sound.mp3" preload="auto"></audio>
+
+<div class="pomodoro-container">
+    <!-- Header Section -->
+    <div class="pomodoro-header mb-5">
+        <h2 class="pomodoro-title">
+            <span class="tomato-icon">🍅</span>
+            Pomodoro Timer
+        </h2>
+        <p class="pomodoro-subtitle">Focus. Work. Rest. Repeat.</p>
+    </div>
+
+    <!-- Settings Card -->
+    <div class="settings-card mb-4">
+        <div class="settings-content">
+            <div class="setting-item">
+                <label for="workDurationInput" class="setting-label">
+                    <svg class="setting-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                        <polyline points="12,6 12,12 16,14" stroke-width="2"/>
+                    </svg>
+                    Work Duration (minutes)
+                </label>
+                <input type="number" min="1" id="workDurationInput" class="form-control work-input" value="25">
+            </div>
+            <button id="setDurationsBtn" class="btn-gradient">
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M5 13l4 4L19 7" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Apply Settings
+            </button>
+        </div>
+    </div>
+
+    <!-- Timer Display -->
+    <div class="timer-wrapper">
+        <div class="timer-card">
+            <div class="progress-wrapper">
+                <svg class="progress-ring" width="350" height="350" viewBox="0 0 350 350">
+                    <defs>
+                        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle class="progress-ring-bg" cx="175" cy="175" r="160" />
+                    <circle class="progress-ring-circle" cx="175" cy="175" r="160" />
+                </svg>
+                <div class="timer-center">
+                    <div id="timer" class="timer-text">25:00</div>
+                    <div id="session-type" class="session-text">Work Session</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Buttons -->
+    <div class="controls-section">
+        <button id="start-btn" class="control-btn btn-start">
+            <svg class="control-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <polygon points="5 3 19 12 5 21 5 3" stroke-width="2"/>
+            </svg>
+            Start
+        </button>
+        <button id="pause-btn" class="control-btn btn-pause">
+            <svg class="control-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="6" y="4" width="4" height="16" stroke-width="2"/>
+                <rect x="14" y="4" width="4" height="16" stroke-width="2"/>
+            </svg>
+            Pause
+        </button>
+        <button id="reset-btn" class="control-btn btn-reset">
+            <svg class="control-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" stroke-width="2"/>
+                <path d="M21 3v5h-5" stroke-width="2"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" stroke-width="2"/>
+            </svg>
+            Reset
+        </button>
+    </div>
+
+    <!-- History Section -->
+    <div class="history-section mt-5">
+        <div class="history-header">
+            <h3 class="history-title">
+                <svg class="history-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-width="2"/>
+                </svg>
+                Today's Sessions
+            </h3>
+        </div>
+        <div class="history-card">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessionHistory">
+                            @foreach (var s in Model)
+                            {
+                                <tr class="history-row">
+                                    <td>
+                                        <span class="badge badge-@(s.Type.ToString().ToLower())">
+                                            @(s.Type == PomodoroType.Work ? "🎯" : "☕") @s.Type
+                                        </span>
+                                    </td>
+                                    <td>@s.StartTime.ToString("HH:mm")</td>
+                                    <td>@s.EndTime.ToString("HH:mm")</td>
+                                    <td><strong>@s.Duration.ToString(@"mm\:ss")</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                        <path d="M12 6v6l4 2" stroke-width="2"/>
+                    </svg>
+                    <p class="empty-text">No sessions today. Start your first Pomodoro!</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+let workDuration = 25 * 60;
+let breakDuration = Math.floor(workDuration / 5);
+let timerDuration = workDuration;
+let totalDuration = workDuration;
+let timerInterval = null;
+let isWork = true;
+let sessionStartTime = null;
+let audioUnlocked = false;
+
+const timerEl = document.getElementById("timer");
+const sessionEl = document.getElementById("session-type");
+const alarmSound = document.getElementById("alarmSound");
+const circle = document.querySelector(".progress-ring-circle");
+const radius = 160;
+const circumference = 2 * Math.PI * radius;
+
+// Initialize circle properly
+circle.style.strokeDasharray = `${circumference} ${circumference}`;
+circle.style.strokeDashoffset = '0';
+
+const workInput = document.getElementById("workDurationInput");
+const setDurationsBtn = document.getElementById("setDurationsBtn");
+
+function saveSessionState() {
+    if (!sessionStartTime) return;
+    localStorage.setItem("pomodoroSession", JSON.stringify({
+        isWork,
+        startTime: sessionStartTime,
+        timerDuration,
+        totalDuration
+    }));
+}
+
+function loadSession() {
+    const saved = JSON.parse(localStorage.getItem("pomodoroSession"));
+    if (!saved) {
+        timerDuration = totalDuration;
+        updateTimer();
+        return;
+    }
+
+    isWork = saved.isWork;
+    totalDuration = saved.totalDuration || (isWork ? workDuration : breakDuration);
+
+    const startTime = new Date(saved.startTime).getTime();
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+
+    if (elapsed >= totalDuration) {
+        isWork = !isWork;
+        totalDuration = isWork ? workDuration : breakDuration;
+        timerDuration = totalDuration;
+        sessionStartTime = null;
+        sessionEl.textContent = isWork ? "Work Session" : "Break Session";
+        localStorage.removeItem("pomodoroSession");
+        updateTimer();
+        return;
+    }
+
+    timerDuration = totalDuration - elapsed;
+    sessionStartTime = new Date(startTime);
+    sessionEl.textContent = isWork ? "Work Session" : "Break Session";
+    updateTimer();
+}
+
+function formatTime(seconds) {
+    seconds = Math.max(seconds, 0);
+    const m = Math.floor(seconds / 60).toString().padStart(2,'0');
+    const s = (seconds % 60).toString().padStart(2,'0');
+    return `${m}:${s}`;
+}
+
+function updateCircle() {
+    const progress = timerDuration / totalDuration;
+    const offset = circumference * (1 - progress);
+    circle.style.strokeDashoffset = offset;
+    console.log('Progress:', progress, 'Offset:', offset); // Debug
+}
+
+function updateTimer() {
+    timerEl.textContent = formatTime(timerDuration);
+    updateCircle();
+}
+
+function playAlarm() {
+    alarmSound.currentTime = 0;
+    alarmSound.play().catch(()=>console.warn("Audio blocked"));
+}
+
+function stopAlarm() {
+    alarmSound.pause();
+    alarmSound.currentTime = 0;
+}
+
+function saveSession(type, start, end) {
+    fetch('/Pomodoro/SaveSession', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify({ startTime: start, endTime: end, type })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const typeEmoji = data.type === 'Work' ? '🎯' : '☕';
+        const badgeClass = data.type.toLowerCase();
+        const row = `<tr class="history-row">
+            <td><span class="badge badge-${badgeClass}">${typeEmoji} ${data.type}</span></td>
+            <td>${data.start}</td>
+            <td>${data.end}</td>
+            <td><strong>${data.duration}</strong></td>
+        </tr>`;
+        document.getElementById("sessionHistory").insertAdjacentHTML("afterbegin", row);
+        
+        // Remove empty state if it exists
+        const emptyState = document.querySelector('.empty-state');
+        if (emptyState) emptyState.remove();
+    })
+    .catch(err => console.error(err));
+}
+
+async function notifySW(endTime, sessionType) {
+    if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg && reg.active) {
+            reg.active.postMessage({ type: 'startTimer', endTime, sessionType });
+        }
+    }
+}
+
+function handleSessionEnd() {
+    playAlarm();
+    const endTime = new Date();
+    saveSession(isWork ? "Work" : "Break", sessionStartTime.toISOString(), endTime.toISOString());
+
+    isWork = !isWork;
+    totalDuration = isWork ? workDuration : breakDuration;
+    timerDuration = totalDuration;
+    sessionStartTime = null;
+    sessionEl.textContent = isWork ? "Work Session" : "Break Session";
+    updateTimer();
+    saveSessionState();
+}
+
+function startTimer(saveState=true) {
+    stopAlarm();
+    clearInterval(timerInterval);
+
+    if (!sessionStartTime) sessionStartTime = new Date();
+    if (saveState) saveSessionState();
+
+    const endTime = sessionStartTime.getTime() + timerDuration*1000;
+    notifySW(endTime, isWork ? "work" : "break");
+
+    timerInterval = setInterval(() => {
+        timerDuration = Math.max(timerDuration - 1, 0);
+        updateTimer();
+        if (timerDuration <= 0) {
+            clearInterval(timerInterval);
+            handleSessionEnd();
+            showDesktopNotification(isWork ? "Work Session" : "Break Session", "Time's up!");
+        }
+    }, 1000);
+}
+
+function showDesktopNotification(title, body) {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "granted") {
+        new Notification(title, { body, icon: '/favicon.ico' });
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                new Notification(title, { body, icon: '/favicon.ico' });
+            }
+        });
+    }
+}
+
+setDurationsBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    const newWork = parseInt(workInput.value);
+
+    if (isNaN(newWork) || newWork <= 0) {
+        alert("Please enter a valid positive number for work duration.");
+        return;
+    }
+
+    workDuration = newWork * 60;
+    breakDuration = Math.floor(workDuration / 5);
+    totalDuration = isWork ? workDuration : breakDuration;
+
+    if (!sessionStartTime) {
+        timerDuration = totalDuration;
+    }
+
+    updateTimer();
+    localStorage.setItem("pomodoroDurations", JSON.stringify({ workDuration: workDuration }));
+});
+
+document.getElementById("start-btn").addEventListener("click", ()=> {
+    if (!audioUnlocked) {
+        alarmSound.play().then(()=>{ alarmSound.pause(); alarmSound.currentTime=0; audioUnlocked=true; });
+    }
+    startTimer();
+});
+
+document.getElementById("pause-btn").addEventListener("click", ()=> {
+    clearInterval(timerInterval);
+    saveSessionState();
+});
+
+document.getElementById("reset-btn").addEventListener("click", ()=> {
+    clearInterval(timerInterval);
+    if (sessionStartTime) {
+        const now = new Date();
+        saveSession(isWork ? "Work" : "Break", sessionStartTime.toISOString(), now.toISOString());
+    }
+    timerDuration = totalDuration;
+    sessionStartTime = null;
+    localStorage.removeItem("pomodoroSession");
+    updateTimer();
+});
+
+updateTimer();
+loadSession();
+
+const savedDurations = JSON.parse(localStorage.getItem("pomodoroDurations"));
+if (savedDurations) {
+    workDuration = savedDurations.workDuration || workDuration;
+    breakDuration = Math.floor(workDuration / 5);
+    workInput.value = Math.floor(workDuration / 60);
+
+    if (!sessionStartTime) {
+        totalDuration = isWork ? workDuration : breakDuration;
+        timerDuration = totalDuration;
+        updateTimer();
+    }
+}
+
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw-pomodoro.js')
+        .then(reg => console.log('SW registered', reg))
+        .catch(err => console.error('SW registration failed', err));
+}
+</script>
+}
+
+<style>
+/* Container */
+.pomodoro-container {
+    max-width: 900px;
+    margin: 0 auto;
+    animation: fadeIn 0.6s ease-out;
+}
+
+@@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.pomodoro-header {
+    text-align: center;
+}
+
+.pomodoro-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.tomato-icon {
+    font-size: 2.5rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.pomodoro-subtitle {
+    color: #64748b;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Settings Card */
+.settings-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.settings-content {
+    display: flex;
+    align-items: end;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.setting-item {
+    flex: 1;
+    min-width: 200px;
+}
+
+.setting-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.setting-icon {
+    width: 20px;
+    height: 20px;
+    stroke: #667eea;
+}
+
+.work-input {
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1e293b;
+    transition: all 0.3s ease;
+}
+
+.work-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.btn-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    padding: 12px 32px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Timer Card */
+.timer-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 40px 0;
+}
+
+.timer-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.progress-wrapper {
+    position: relative;
+    width: 350px;
+    height: 350px;
+    margin: 0 auto;
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+    fill: none;
+    stroke: #e2e8f0;
+    stroke-width: 16;
+}
+
+.progress-ring-circle {
+    fill: none;
+    stroke: url(#progressGradient);
+    stroke-width: 16;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+    filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.3));
+}
+
+.timer-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.timer-text {
+    font-size: 5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 12px;
+}
+
+.session-text {
+    color: #64748b;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* Controls */
+.controls-section {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.control-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.control-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-start {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.btn-start:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-pause {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.btn-pause:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.btn-reset {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.btn-reset:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+/* History Section */
+.history-section {
+    animation: slideUp 0.6s ease-out 0.2s both;
+}
+
+@@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.history-header {
+    margin-bottom: 16px;
+}
+
+.history-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.history-icon {
+    width: 28px;
+    height: 28px;
+    stroke: #667eea;
+}
+
+.history-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+.history-table thead th {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.history-row {
+    background: white;
+    transition: all 0.3s ease;
+    animation: slideIn 0.4s ease-out;
+}
+
+@@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.history-row:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.history-row td {
+    padding: 16px;
+    border-top: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.history-row td:first-child {
+    border-left: 1px solid #f1f5f9;
+    border-radius: 12px 0 0 12px;
+}
+
+.history-row td:last-child {
+    border-right: 1px solid #f1f5f9;
+    border-radius: 0 12px 12px 0;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.badge-work {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    color: #667eea;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.badge-break {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.1));
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-icon {
+    width: 64px;
+    height: 64px;
+    stroke: #cbd5e1;
+    margin-bottom: 16px;
+}
+
+.empty-text {
+    color: #94a3b8;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .pomodoro-title {
+        font-size: 2rem;
+    }
+    
+    .progress-wrapper {
+        width: 280px;
+        height: 280px;
+    }
+    
+    .timer-card {
+        padding: 24px;
+    }
+    
+    .progress-ring {
+        width: 280px;
+        height: 280px;
+    }
+    
+    .progress-ring circle {
+        cx: 140;
+        cy: 140;
+        r: 120;
+    }
+    
+    .progress-ring-bg,
+    .progress-ring-circle {
+        stroke-width: 12;
+    }
+    
+    .timer-text {
+        font-size: 3.5rem;
+    }
+    
+    .session-text {
+        font-size: 1rem;
+    }
+    
+    .settings-content {
+        flex-direction: column;
+    }
+    
+    .setting-item {
+        width: 100%;
+    }
+    
+    .controls-section {
+        flex-direction: column;
+    }
+    
+    .control-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>

@@ -6,12 +6,12 @@ namespace TeamProject.Services
     public class ReminderService : IReminderService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IEmailService _emailService;
+        private readonly IEmailNotifService _emailService;
         private readonly ILogger<ReminderService> _logger;
 
         public ReminderService(
             ApplicationDbContext context,
-            IEmailService emailService,
+            IEmailNotifService emailService,
             ILogger<ReminderService> logger)
         {
             _context = context;

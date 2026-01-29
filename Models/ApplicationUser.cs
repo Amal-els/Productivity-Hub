@@ -13,6 +13,8 @@ namespace TeamProject.Models
 
         public string FullName => $"{FirstName} {LastName}".Trim();
 
+        public string? EmailPassword { get; set; }
+
         // Navigation properties
         public virtual ICollection<CalendarEvent> CalendarEvents { get; set; }
         public virtual ICollection<EventParticipant> EventParticipations { get; set; }

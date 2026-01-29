@@ -5,9 +5,9 @@ namespace TeamProject.Controllers
 {
     public class TestEmailController : Controller
     {
-        private readonly IEmailService _emailService;
+        private readonly IEmailNotifService _emailService;
 
-        public TestEmailController(IEmailService emailService)
+        public TestEmailController(IEmailNotifService emailService)
         {
             _emailService = emailService;
         }

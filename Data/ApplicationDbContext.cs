@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 using TeamProject.Models;
 
 namespace TeamProject.Data
@@ -10,11 +11,12 @@ namespace TeamProject.Data
             : base(options)
         {
         }
-
         public DbSet<CalendarEvent> CalendarEvents { get; set; }
         public DbSet<Meeting> Meetings { get; set; }
         public DbSet<EventParticipant> EventParticipants { get; set; }
         public DbSet<EmailLog> EmailLogs { get; set; }
+        public DbSet<PomodoroSession> PomodoroSessions { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -62,6 +64,10 @@ namespace TeamProject.Data
 
             builder.Entity<EmailLog>()
                 .HasIndex(e => e.RelatedEventId);
+
+            builder.Entity<PomodoroSession>();
+
         }
     }
 }
+
