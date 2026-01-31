@@ -46,8 +46,8 @@ public class PomodoroController : Controller
         var session = new PomodoroSession
         {
             UserId = userId,
-            StartTime = dto.StartTime.ToUniversalTime(),
-            EndTime = dto.EndTime.ToUniversalTime(),
+            StartTime = dto.StartTime,
+            EndTime = dto.EndTime,
             Type = Enum.Parse<PomodoroType>(dto.Type),
             IsCompleted = true
         };

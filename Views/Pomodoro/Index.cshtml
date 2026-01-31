@@ -119,8 +119,8 @@
                                             @(s.Type == PomodoroType.Work ? "🎯" : "☕") @s.Type
                                         </span>
                                     </td>
-                                    <td>@s.StartTime.ToString("HH:mm")</td>
-                                    <td>@s.EndTime.ToString("HH:mm")</td>
+                                    <td>@s.StartTime.ToLocalTime().ToString("HH:mm")</td>
+                                    <td>@s.EndTime.ToLocalTime().ToString("HH:mm")</td>
                                     <td><strong>@s.Duration.ToString(@"mm\:ss")</strong></td>
                                 </tr>
                             }
