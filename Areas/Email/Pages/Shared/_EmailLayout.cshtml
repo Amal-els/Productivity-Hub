@@ -1,3 +1,4 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "The DAG Hub";
     var currentTab = ViewData["CurrentTab"]?.ToString() ?? "Email";
@@ -26,6 +27,9 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             overflow-x: hidden;
+        }
+        .body * {
+            transform: none;
         }
 
         .app-container {
@@ -314,10 +318,6 @@
         .unread {
             font-weight: 600;
         }
-        
-
-
-        }
     </style>
 </head>
 <body>
@@ -443,13 +443,80 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- VAPI Widget Configuration -->
+    <script>
+        window.VAPI_CONFIG = {
+            publicKey: '@Configuration["VapiSettings:PublicKey"]',
+            assistantId: '@Configuration["VapiSettings:AssistantId"]'
+        };
+    </script>
+
+    <!-- VAPI Widget Script -->
+    <script>
+        (function() {
+            'use strict';
+
+            const buttonConfig = {
+                position: "bottom-right",
+                offset: "40px",
+                width: "50px",
+                height: "50px",
+                idle: {
+                    color: "#667eea",
+                    type: "pill",
+                    title: "Send Email with Voice",
+                    subtitle: "Talk to compose emails",
+                    icon: "https://unpkg.com/lucide-static@0.321.0/icons/mail.svg",
+                },
+                loading: {
+                    color: "rgb(93, 124, 202)",
+                    type: "pill",
+                    title: "Connecting...",
+                    subtitle: "Please wait",
+                    icon: "https://unpkg.com/lucide-static@0.321.0/icons/loader-2.svg",
+                },
+                active: {
+                    color: "rgb(255, 0, 0)",
+                    type: "pill",
+                    title: "Listening...",
+                    subtitle: "Speak now",
+                    icon: "https://unpkg.com/lucide-static@0.321.0/icons/mic.svg",
+                },
+            };
+
+            function initializeVapi() {
+                if (typeof window.vapiSDK !== 'undefined') {
+                    try {
+                        if (!window.VAPI_CONFIG || !window.VAPI_CONFIG.publicKey || !window.VAPI_CONFIG.assistantId) {
+                            console.error('VAPI configuration missing');
+                            return;
+                        }
+
+                        window.vapiSDK.run({
+                            apiKey: window.VAPI_CONFIG.publicKey,
+                            assistant: window.VAPI_CONFIG.assistantId,
+                            config: buttonConfig
+                        });
+                        console.log('✅ VAPI Widget initialized');
+                    } catch (error) {
+                        console.error('Error initializing VAPI:', error);
+                    }
+                }
+                
+            }
+
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/gh/VapiAI/html-script-tag@latest/dist/assets/index.js';
+            script.async = true;
+            script.onload = initializeVapi;
+            script.onerror = function() {
+                console.error('Failed to load VAPI SDK');
+            };
+            
+            document.head.appendChild(script);
+        })();
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-
-
-    
-    
-    
-
-    

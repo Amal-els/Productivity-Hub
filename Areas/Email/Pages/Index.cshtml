@@ -68,26 +68,23 @@
         margin-left: 10px;
         text-shadow: 0 1px 2px rgba(0,0,0,0.25);
         animation: pulse 2s ease-in-out infinite;
-
     }
 
     .email-row {
-    transition: all 0.3s ease;
-}
+        transition: all 0.3s ease;
+    }
 
     .email-row.unread .email-from,
     .email-row.unread .email-subject {
-        font-weight: 700; /* Bold for unread */
+        font-weight: 700;
         color: #1e293b;
     }
 
     .email-row.read .email-from,
     .email-row.read .email-subject {
-        font-weight: 400; /* Normal for read */
+        font-weight: 400;
         color: #64748b;
     }
-
-
 
     @@keyframes pulse {
         0%, 100% {
@@ -304,34 +301,34 @@
     }
 
     .btn-close {
-            width: 50px !important;
-            height: 50px !important;
-            border-radius: 50% !important;
-            padding: 0 !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
-            border: none !important;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            cursor: pointer;
-        }
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        cursor: pointer;
+    }
 
-            .btn-close:hover {
-                transform: translateY(-2px) !important;
-                box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
-            }
+    .btn-close:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+    }
 
-            .btn-close:active {
-                transform: translateY(0) !important;
-            }
+    .btn-close:active {
+        transform: translateY(0) !important;
+    }
 
-            .btn-close svg {
-                width: 24px !important;
-                height: 24px !important;
-                flex-shrink: 0;
-            }
+    .btn-close svg {
+        width: 24px !important;
+        height: 24px !important;
+        flex-shrink: 0;
+    }
 
     .modal-body {
         padding: 32px;
@@ -490,19 +487,6 @@
 
 <div class="email-card">
     <div class="table-responsive">
-        <!-- Voice Email Button -->
-        <button id="voiceEmailBtn" class="btn btn-primary" style="display:flex; align-items:center; gap:8px;">
-            <i class="bi bi-mic-fill"></i> Talk to Agent
-        </button>
-
-        <!-- Confirmation Toast -->
-        <div id="voiceToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" style="position:fixed; bottom:20px; right:20px; display:none;">
-        <div class="d-flex">
-            <div class="toast-body" id="voiceToastBody"></div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="document.getElementById('voiceToast').style.display='none';"></button>
-        </div>
-        </div>
-
         <table class="table email-table" id="emailTable">
             <thead>
                 <tr>
@@ -597,67 +581,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         const modalEl = document.getElementById('emailModal');
         emailModal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: true });
-        const voiceBtn = document.getElementById('voiceEmailBtn');
-        const toast = document.getElementById('voiceToast');
-        const toastBody = document.getElementById('voiceToastBody');
 
-        // Check for browser support
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        voiceBtn.disabled = true;
-        voiceBtn.textContent = "Voice not supported";
-        return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    voiceBtn.addEventListener('click', () => {
-        recognition.start();
-        voiceBtn.innerHTML = '<i class="bi bi-mic-fill"></i> Listening...';
-    });
-
-    recognition.addEventListener('result', async (event) => {
-        const userSpeech = event.results[0][0].transcript;
-        console.log("User said:", userSpeech);
-        voiceBtn.innerHTML = '<i class="bi bi-mic-fill"></i> Talk to Agent';
-
-        try {
-            const res = await fetch('https://amal1.app.n8n.cloud/webhook-test/voice-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: userSpeech })
-            });
-
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-            const data = await res.json();
-            console.log('Agent response:', data);
-
-            // Show toast confirmation
-            toastBody.textContent = data.message || "Email sent successfully!";
-            toast.style.display = 'flex';
-
-            // Optional: read response out loud
-            const utterance = new SpeechSynthesisUtterance(data.message || "Email sent successfully!");
-            speechSynthesis.speak(utterance);
-
-        } catch (err) {
-            console.error(err);
-            toastBody.textContent = "Failed to send email: " + err.message;
-            toast.style.display = 'flex';
-        }
-    });
-
-    recognition.addEventListener('speechend', () => recognition.stop());
-    recognition.addEventListener('error', (e) => {
-        console.error(e.error);
-        voiceBtn.innerHTML = '<i class="bi bi-mic-fill"></i> Talk to Agent';
-        toastBody.textContent = "Voice recognition error: " + e.error;
-        toast.style.display = 'flex';
-    });
         // Reset modal when hidden
         modalEl.addEventListener('hidden.bs.modal', () => {
             document.getElementById('emailLoading').style.display = 'block';
@@ -846,8 +770,6 @@
             document.getElementById('errorMessage').textContent = 'Failed to load email: ' + err.message;
         }
     }
-
-
 
     function escapeHtml(text) {
         if (!text) return '';
