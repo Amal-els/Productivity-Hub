@@ -58,7 +58,7 @@ namespace TeamProject.Controllers
 
             // Get the user's email & app password from your DB
             var fromEmail = user.Email; // Gmail address
-            var appPassword = user.EmailPassword; // stored securely in DB
+            var appPassword = user.EmailPassword; 
 
             if (string.IsNullOrEmpty(appPassword))
             {
@@ -85,6 +85,17 @@ namespace TeamProject.Controllers
                 ModelState.AddModelError("", "Failed to send email: " + ex.Message);
                 return View(model);
             }
+        }
+
+        public async Task<IActionResult> Sent()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            var messages = await _emailService.GetSentAsync();
+            return View(messages);
         }
 
     }

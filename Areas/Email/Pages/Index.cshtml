@@ -71,6 +71,23 @@
 
     }
 
+    .email-row {
+    transition: all 0.3s ease;
+}
+
+    .email-row.unread .email-from,
+    .email-row.unread .email-subject {
+        font-weight: 700; /* Bold for unread */
+        color: #1e293b;
+    }
+
+    .email-row.read .email-from,
+    .email-row.read .email-subject {
+        font-weight: 400; /* Normal for read */
+        color: #64748b;
+    }
+
+
 
     @@keyframes pulse {
         0%, 100% {
@@ -287,15 +304,34 @@
     }
 
     .btn-close {
-        background: transparent;
-        opacity: 0.5;
-        transition: all 0.3s ease;
-    }
+            width: 50px !important;
+            height: 50px !important;
+            border-radius: 50% !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            cursor: pointer;
+        }
 
-    .btn-close:hover {
-        opacity: 1;
-        transform: rotate(90deg);
-    }
+            .btn-close:hover {
+                transform: translateY(-2px) !important;
+                box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+            }
+
+            .btn-close:active {
+                transform: translateY(0) !important;
+            }
+
+            .btn-close svg {
+                width: 24px !important;
+                height: 24px !important;
+                flex-shrink: 0;
+            }
 
     .modal-body {
         padding: 32px;
@@ -454,6 +490,19 @@
 
 <div class="email-card">
     <div class="table-responsive">
+        <!-- Voice Email Button -->
+        <button id="voiceEmailBtn" class="btn btn-primary" style="display:flex; align-items:center; gap:8px;">
+            <i class="bi bi-mic-fill"></i> Talk to Agent
+        </button>
+
+        <!-- Confirmation Toast -->
+        <div id="voiceToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" style="position:fixed; bottom:20px; right:20px; display:none;">
+        <div class="d-flex">
+            <div class="toast-body" id="voiceToastBody"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="document.getElementById('voiceToast').style.display='none';"></button>
+        </div>
+        </div>
+
         <table class="table email-table" id="emailTable">
             <thead>
                 <tr>
@@ -548,7 +597,67 @@
     document.addEventListener('DOMContentLoaded', function() {
         const modalEl = document.getElementById('emailModal');
         emailModal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: true });
+        const voiceBtn = document.getElementById('voiceEmailBtn');
+        const toast = document.getElementById('voiceToast');
+        const toastBody = document.getElementById('voiceToastBody');
 
+        // Check for browser support
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        voiceBtn.disabled = true;
+        voiceBtn.textContent = "Voice not supported";
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    voiceBtn.addEventListener('click', () => {
+        recognition.start();
+        voiceBtn.innerHTML = '<i class="bi bi-mic-fill"></i> Listening...';
+    });
+
+    recognition.addEventListener('result', async (event) => {
+        const userSpeech = event.results[0][0].transcript;
+        console.log("User said:", userSpeech);
+        voiceBtn.innerHTML = '<i class="bi bi-mic-fill"></i> Talk to Agent';
+
+        try {
+            const res = await fetch('https://amal1.app.n8n.cloud/webhook-test/voice-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: userSpeech })
+            });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            const data = await res.json();
+            console.log('Agent response:', data);
+
+            // Show toast confirmation
+            toastBody.textContent = data.message || "Email sent successfully!";
+            toast.style.display = 'flex';
+
+            // Optional: read response out loud
+            const utterance = new SpeechSynthesisUtterance(data.message || "Email sent successfully!");
+            speechSynthesis.speak(utterance);
+
+        } catch (err) {
+            console.error(err);
+            toastBody.textContent = "Failed to send email: " + err.message;
+            toast.style.display = 'flex';
+        }
+    });
+
+    recognition.addEventListener('speechend', () => recognition.stop());
+    recognition.addEventListener('error', (e) => {
+        console.error(e.error);
+        voiceBtn.innerHTML = '<i class="bi bi-mic-fill"></i> Talk to Agent';
+        toastBody.textContent = "Voice recognition error: " + e.error;
+        toast.style.display = 'flex';
+    });
         // Reset modal when hidden
         modalEl.addEventListener('hidden.bs.modal', () => {
             document.getElementById('emailLoading').style.display = 'block';
@@ -607,6 +716,13 @@
             data.messages.forEach(msg => {
                 const row = document.createElement('tr');
                 row.dataset.uid = msg.uid;
+                row.classList.add('email-row');
+                if (msg.seen) {
+                    row.classList.add('read');
+                } 
+                else {
+                    row.classList.add('unread');
+                }
                 row.innerHTML = `
                     <td class="email-from">${escapeHtml(msg.from)}</td>
                     <td class="email-subject">
@@ -616,7 +732,7 @@
                     <td class="email-date">${escapeHtml(msg.date)}</td>
                     <td class="email-preview d-none d-lg-table-cell">${escapeHtml(msg.preview)}</td>
                 `;
-                row.addEventListener('click', () => openEmail(msg.uid));
+                row.addEventListener('click', () => openEmail(msg.uid, row));
                 tbody.appendChild(row);
             });
 
@@ -636,8 +752,27 @@
         }
     }
 
-    async function openEmail(uid) {
+    async function openEmail(uid, row) {
+        
+        if(row) {
+            row.classList.remove('unread');
+            row.classList.add('read');
+        }
         emailModal.show();
+
+        try {
+            await fetch('?handler=MarkAsRead', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(uid)
+            });
+        }
+        catch (err) {
+            console.error('Failed to mark as read:', err);
+        }
         // Ensure no leftover backdrops
         document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
         document.body.classList.remove('modal-open');
@@ -711,6 +846,8 @@
             document.getElementById('errorMessage').textContent = 'Failed to load email: ' + err.message;
         }
     }
+
+
 
     function escapeHtml(text) {
         if (!text) return '';

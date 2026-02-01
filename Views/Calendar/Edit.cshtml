@@ -1,0 +1,580 @@
+﻿@model TeamProject.ViewModels.CalendarEventViewModel
+@{
+    Layout = "~/Views/Shared/_ProductivityLayout.cshtml";
+    ViewData["Title"] = "Edit Event";
+}
+
+@section Styles {
+    <style>
+        .form-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .event-type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #64748b;
+            margin-left: 8px;
+        }
+
+        .delete-section {
+            text-align: right;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .required {
+            color: #ef4444;
+            margin-left: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+            .form-control:focus {
+                outline: none;
+                border-color: #667eea;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            }
+
+            .form-control.is-invalid {
+                border-color: #ef4444;
+            }
+
+        .invalid-feedback {
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .datetime-inputs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .date-input {
+            flex: 1.5;
+        }
+
+        .time-input {
+            flex: 1;
+        }
+
+        .color-picker-wrapper {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .color-input {
+            width: 60px;
+            height: 44px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .checkbox-wrapper:hover {
+                background: #f1f5f9;
+            }
+
+        .checkbox-input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .checkbox-label {
+            font-size: 14px;
+            color: #334155;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .participants-container {
+            display: none;
+        }
+
+            .participants-container.show {
+                display: block;
+            }
+
+        .participant-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .btn-add-participant {
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 6px;
+            color: #667eea;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-add-participant:hover {
+                background: #e2e8f0;
+            }
+
+        .btn-remove-participant {
+            padding: 8px 12px;
+            background: #fee2e2;
+            border: none;
+            border-radius: 6px;
+            color: #dc2626;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .btn-remove-participant:hover {
+                background: #fecaca;
+            }
+
+        .reminder-settings {
+            display: none;
+            margin-top: 16px;
+            padding: 16px;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+            .reminder-settings.show {
+                display: block;
+            }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: space-between;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid #f1f5f9;
+        }
+
+        .actions-right {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+            .btn-primary:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+            .btn-secondary:hover {
+                background: #e2e8f0;
+            }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+            .btn-danger:hover {
+                background: #fecaca;
+            }
+
+        @@media (max-width: 768px) {
+            .page-header
+
+        {
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-card {
+            padding: 24px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .actions-right {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .datetime-inputs {
+            flex-direction: column;
+        }
+
+        }
+    </style>
+}
+
+<div class="form-container">
+    <div class="page-header">
+        <div>
+            <h2 class="page-title">✏️ Edit Event</h2>
+            <p class="page-subtitle">
+                Update your event details
+                <span class="event-type-badge">@Model.EventType</span>
+            </p>
+        </div>
+        <div class="delete-section">
+            <form asp-action="Delete" asp-route-id="@Model.Id" method="post" style="display:inline;"
+                  onsubmit="return confirm('Are you sure you want to delete this event?');">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Delete
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="form-card">
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="EventType" />
+
+            <div class="form-section">
+                <h3 class="section-title">📋 Basic Information</h3>
+
+                <div class="form-group">
+                    <label asp-for="Title" class="form-label">
+                        Title<span class="required">*</span>
+                    </label>
+                    <input asp-for="Title" class="form-control" placeholder="Enter event title" />
+                    <span asp-validation-for="Title" class="invalid-feedback"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Description" class="form-label">Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Add event description or notes"></textarea>
+                    <span asp-validation-for="Description" class="invalid-feedback"></span>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">🕐 Date & Time</h3>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            Start Time
+                        </label>
+                        <div class="datetime-inputs">
+                            <input asp-for="StartDate" type="date" class="form-control date-input" id="startDate" />
+                            <input asp-for="StartClock" type="time" class="form-control time-input" id="startTime" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            End Time
+                        </label>
+                        <div class="datetime-inputs">
+                            <input asp-for="EndDate" type="date" class="form-control date-input" id="endDate" />
+                            <input asp-for="EndClock" type="time" class="form-control time-input" id="endTime" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-wrapper">
+                        <input asp-for="IsAllDay" type="checkbox" class="checkbox-input" />
+                        <span class="checkbox-label">All-day event</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">📍 Details</h3>
+
+                <div class="form-group">
+                    <label asp-for="Location" class="form-label">Location</label>
+                    <input asp-for="Location" class="form-control" placeholder="Add location or meeting room" />
+                    <span asp-validation-for="Location" class="invalid-feedback"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Color" class="form-label">Color</label>
+                    <div class="color-picker-wrapper">
+                        <input asp-for="Color" type="color" class="color-input" id="colorPicker" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meeting Details -->
+            @if (Model.EventType == "Meeting")
+            {
+                <div class="form-section participants-container show" id="meetingSection">
+                    <h3 class="section-title">👥 Meeting Details</h3>
+
+                    <div class="form-group">
+                        <label asp-for="MeetingLink" class="form-label">Meeting Link</label>
+                        <input asp-for="MeetingLink" class="form-control" placeholder="https://zoom.us/j/... or Google Meet link" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Participants</label>
+                        <div id="participantsContainer">
+                            @if (Model.ParticipantEmails != null && Model.ParticipantEmails.Any())
+                            {
+                                for (int i = 0; i < Model.ParticipantEmails.Count; i++)
+                                {
+                                    <div class="participant-input-group">
+                                        <input type="email" name="ParticipantEmails[@i]" value="@Model.ParticipantEmails[i]" class="form-control" placeholder="participant@example.com" />
+                                        @if (i > 0)
+                                        {
+                                            <button type="button" class="btn-remove-participant" onclick="removeParticipant(this)">×</button>
+                                        }
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="participant-input-group">
+                                    <input type="email" name="ParticipantEmails[0]" class="form-control" placeholder="participant@example.com" />
+                                </div>
+                            }
+                        </div>
+                        <button type="button" class="btn-add-participant" onclick="addParticipant()">
+                            + Add Participant
+                        </button>
+                    </div>
+                </div>
+            }
+
+            <!-- Reminders & Settings -->
+            <div class="form-section">
+                <h3 class="section-title">⚙️ Settings</h3>
+
+                <div class="form-group">
+                    <label class="checkbox-wrapper">
+                        <input asp-for="HasReminder" type="checkbox" class="checkbox-input" id="hasReminder" />
+                        <span class="checkbox-label">Set reminder</span>
+                    </label>
+
+                    <div class="reminder-settings @(Model.HasReminder ? "show" : "")" id="reminderSettings">
+                        <label asp-for="ReminderMinutesBefore" class="form-label">Remind me before</label>
+                        <select asp-for="ReminderMinutesBefore" class="form-control">
+                            <option value="5">5 minutes</option>
+                            <option value="15">15 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="60">1 hour</option>
+                            <option value="120">2 hours</option>
+                            <option value="1440">1 day</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                <div class="actions-right">
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        let participantIndex = @(Model.ParticipantEmails?.Count ?? 1);
+
+        const startDate = document.getElementById("startDate");
+        const startTime = document.getElementById("startTime");
+        const endDate = document.getElementById("endDate");
+        const endTime = document.getElementById("endTime");
+
+        function getDateTime(dateInput, timeInput) {
+            if (!dateInput.value || !timeInput.value) return null;
+            return new Date(`${dateInput.value}T${timeInput.value}`);
+        }
+
+        function validateDates() {
+            if (!startDate.value) return;
+
+            // End date cannot be before start date
+            endDate.min = startDate.value;
+
+            if (endDate.value && endDate.value < startDate.value) {
+                endDate.value = startDate.value;
+                endTime.value = "";
+            }
+
+            // Handle time validation when same day
+            if (startDate.value === endDate.value && startTime.value && endTime.value) {
+                const startDT = getDateTime(startDate, startTime);
+                const endDT = getDateTime(endDate, endTime);
+
+                if (endDT <= startDT) {
+                    endTime.value = "";
+                }
+            }
+
+            // Set minimum selectable end time
+            if (startDate.value === endDate.value && startTime.value) {
+                endTime.min = startTime.value;
+            } else {
+                endTime.removeAttribute("min");
+            }
+        }
+
+        startDate.addEventListener("change", validateDates);
+        startTime.addEventListener("change", validateDates);
+        endDate.addEventListener("change", validateDates);
+        endTime.addEventListener("change", validateDates);
+
+        // Handle reminder toggle
+        document.getElementById('hasReminder').addEventListener('change', function() {
+            const reminderSettings = document.getElementById('reminderSettings');
+            if (this.checked) {
+                reminderSettings.classList.add('show');
+            } else {
+                reminderSettings.classList.remove('show');
+            }
+        });
+
+        // Add participant
+        function addParticipant() {
+            const container = document.getElementById('participantsContainer');
+            const div = document.createElement('div');
+            div.className = 'participant-input-group';
+            div.innerHTML = `
+                <input type="email" name="ParticipantEmails[${participantIndex}]" class="form-control" placeholder="participant@example.com" />
+                <button type="button" class="btn-remove-participant" onclick="removeParticipant(this)">×</button>
+            `;
+            container.appendChild(div);
+            participantIndex++;
+        }
+
+        // Remove participant
+        function removeParticipant(btn) {
+            btn.parentElement.remove();
+        }
+    </script>
+}

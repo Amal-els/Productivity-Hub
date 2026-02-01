@@ -38,29 +38,36 @@ public class PomodoroController : Controller
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> SaveSession([FromBody] PomodoroSessionDto dto)
     {
-
         if (dto == null)
-        return BadRequest("DTO is null");
+            return BadRequest("DTO is null");
+
         var userId = _userManager.GetUserId(User);
+
+        // Specify that incoming times are UTC
+        var startUtc = DateTime.SpecifyKind(dto.StartTime, DateTimeKind.Utc);
+        var endUtc = DateTime.SpecifyKind(dto.EndTime, DateTimeKind.Utc);
 
         var session = new PomodoroSession
         {
             UserId = userId,
-            StartTime = dto.StartTime,
-            EndTime = dto.EndTime,
+            StartTime = startUtc.ToLocalTime(), 
+            EndTime = endUtc.ToLocalTime(),
             Type = Enum.Parse<PomodoroType>(dto.Type),
             IsCompleted = true
         };
 
-         _context.PomodoroSessions.Add(session);
+        _context.PomodoroSessions.Add(session);
         await _context.SaveChangesAsync();
 
-    return Ok(new { type = session.Type,
-    start = session.StartTime.ToString("HH:mm"),
-    end = session.EndTime.ToString("HH:mm"),
-    duration = (session.EndTime - session.StartTime).ToString(@"mm\:ss") });
+        return Json(new
+        {
+            type = session.Type,
+            start = session.StartTime.ToString("HH:mm"),
+            end = session.EndTime.ToString("HH:mm"),
+            duration = (session.EndTime - session.StartTime).ToString(@"mm\:ss")
+        });
     }
 
-    
+
 
 }

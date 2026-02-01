@@ -98,20 +98,20 @@
             </h3>
         </div>
         <div class="history-card">
-            @if (Model != null && Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="history-table">
-                        <thead>
-                            <tr>
-                                <th>Type</th>
-                                <th>Start</th>
-                                <th>End</th>
-                                <th>Duration</th>
-                            </tr>
-                        </thead>
-                        <tbody id="sessionHistory">
-                            @foreach (var s in Model)
+            <div class="table-responsive">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionHistory">
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var s in Model)
                             {
                                 <tr class="history-row">
                                     <td>
@@ -124,11 +124,12 @@
                                     <td><strong>@s.Duration.ToString(@"mm\:ss")</strong></td>
                                 </tr>
                             }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model == null || !Model.Any())
             {
                 <div class="empty-state">
                     <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +244,11 @@ function saveSession(type, start, end) {
         headers: { 'Content-Type':'application/json' },
         body: JSON.stringify({ startTime: start, endTime: end, type })
     })
-    .then(res => res.json())
+    .then(res => {
+    if (!res.ok) throw new Error("Server error");
+    return res.json();
+    })
+
     .then(data => {
         const typeEmoji = data.type === 'Work' ? '🎯' : '☕';
         const badgeClass = data.type.toLowerCase();
@@ -253,7 +258,11 @@ function saveSession(type, start, end) {
             <td>${data.end}</td>
             <td><strong>${data.duration}</strong></td>
         </tr>`;
-        document.getElementById("sessionHistory").insertAdjacentHTML("afterbegin", row);
+        const tbody = document.getElementById("sessionHistory");
+        if (!tbody) return;
+
+        tbody.insertAdjacentHTML("afterbegin", row);
+
         
         // Remove empty state if it exists
         const emptyState = document.querySelector('.empty-state');

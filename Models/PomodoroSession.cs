@@ -14,8 +14,7 @@ namespace TeamProject.Models
 
     public class PomodoroSession
     {
-        [Key]
-        public int SessionId { get; set; }  
+        public int Id { get; set; }
 
         [Required]
         public string UserId { get; set; }  

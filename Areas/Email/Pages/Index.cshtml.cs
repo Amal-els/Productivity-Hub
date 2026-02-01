@@ -20,73 +20,99 @@ public class InboxModel : PageModel
         _userManager = userManager;
         _logger = logger;
     }
-    public async Task<IActionResult> OnGetAsync() { var user = await _userManager.GetUserAsync(User); 
-    if (user == null) 
-    {
-         _logger.LogWarning("User not found"); 
-        return RedirectToPage("/Account/Login", new { area = "Identity" }); 
-    } 
-        // Check if EmailPassword is null or empty 
-    if (string.IsNullOrEmpty(user.EmailPassword)) 
+    public async Task<IActionResult> OnGetAsync() 
     { 
+        var user = await _userManager.GetUserAsync(User); 
+        if (user == null) 
+        {
+            _logger.LogWarning("User not found"); 
+            return RedirectToPage("/Account/Login", new { area = "Identity" }); 
+        } 
+            // Check if EmailPassword is null or empty 
+        if (string.IsNullOrEmpty(user.EmailPassword)) 
+        { 
             _logger.LogInformation($"User {user.Email} has no email password set"); 
             TempData["Info"] = "Please enter your email app password to access your inbox."; 
             return Redirect("~/Email/Settings"); 
-            } 
-            try 
-            { 
-                _logger.LogInformation($"Attempting to fetch emails for {user.Email}");
-                var emailService = _emailServiceFactory.CreateForUser(user); 
-                var Messages = await emailService.GetInboxAsync(20); 
-                _logger.LogInformation($"Successfully loaded {Messages.Count} messages for {user.Email}"); 
-                } 
-                catch (MailKit.Security.AuthenticationException authEx) 
-                {
-                    _logger.LogError(authEx, "Authentication failed - Invalid email password"); 
-                    var Messages = new List<MimeMessage>(); 
-                    TempData["Error"] = "Authentication failed. Your email app password is incorrect. Please update it in settings."; 
-                    TempData["ShowSettingsLink"] = true; 
-                    } 
-                    catch (Exception ex) 
-                    { 
-                        _logger.LogError(ex, "Failed to load inbox"); 
-                        var Messages = new List<MimeMessage>(); 
-                        TempData["Error"] = $"Failed to load inbox: {ex.Message}"; 
-                    } 
-                    return Page();
-
-            }
-
-    // AJAX HANDLER — LOAD EMAILS BATCH
-    public async Task<JsonResult> OnGetLoadEmailsAsync(int skip = 0, int take = 5)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null || string.IsNullOrEmpty(user.EmailPassword))
-            return new JsonResult(new { success = false, message = "Unauthorized" });
-
-        try
+        } 
+        try 
+        { 
+            _logger.LogInformation($"Attempting to fetch emails for {user.Email}");
+            var emailService = _emailServiceFactory.CreateForUser(user); 
+            var Messages = await emailService.GetInboxAsync(20); 
+            _logger.LogInformation($"Successfully loaded {Messages.Count} messages for {user.Email}"); 
+        } 
+        catch (MailKit.Security.AuthenticationException authEx) 
         {
-            var emailService = _emailServiceFactory.CreateForUser(user);
-            var batchWithUid = await emailService.GetInboxBatchAsync(skip, take);
+            _logger.LogError(authEx, "Authentication failed - Invalid email password"); 
+            var Messages = new List<MimeMessage>(); 
+            TempData["Error"] = "Authentication failed. Your email app password is incorrect. Please update it in settings."; 
+            TempData["ShowSettingsLink"] = true; 
+        } 
+        catch (Exception ex) 
+        { 
+            _logger.LogError(ex, "Failed to load inbox"); 
+            var Messages = new List<MimeMessage>(); 
+            TempData["Error"] = $"Failed to load inbox: {ex.Message}"; 
+        } 
+        return Page();
 
-            var batch = batchWithUid.Select(x => new
-            {
-                uid = x.Uid.ToString(),
-                from = x.Message.From.Mailboxes.FirstOrDefault()?.Name ?? x.Message.From.Mailboxes.FirstOrDefault()?.Address ?? "Unknown",
-                subject = x.Message.Subject ?? "(No Subject)",
-                preview = x.Message.TextBody != null ? x.Message.TextBody.Substring(0, Math.Min(100, x.Message.TextBody.Length)) : "",
-                date = x.Message.Date.ToLocalTime().ToString("MMM dd, h:mm tt"),
-                hasAttachments = x.Message.Attachments.Any()
-            }).ToList();
-
-            return new JsonResult(new { success = true, messages = batch });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to load emails via AJAX");
-            return new JsonResult(new { success = false, message = ex.Message });
-        }
     }
+
+
+
+    public async Task<IActionResult> OnPostMarkAsReadAsync([FromBody] string uid)
+        {
+            if (string.IsNullOrEmpty(uid))
+                return new JsonResult(new { success = false, message = "UID is required" });
+
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var emailService = _emailServiceFactory.CreateForUser(user); 
+                await emailService.MarkEmailAsReadAsync(uid, MyFolder.Inbox);
+                return new JsonResult(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { success = false, message = ex.Message });
+            }
+        }
+    // AJAX HANDLER — LOAD EMAILS BATCH
+    public async Task<JsonResult> OnGetLoadEmailsAsync(string folder = "Inbox", int skip = 0, int take = 5)
+{
+    var user = await _userManager.GetUserAsync(User);
+    if (user == null || string.IsNullOrEmpty(user.EmailPassword))
+        return new JsonResult(new { success = false, message = "Unauthorized" });
+
+    try
+    {
+        var emailService = _emailServiceFactory.CreateForUser(user);
+
+        if (!Enum.TryParse<MyFolder>(folder, true, out var folderType))
+            folderType = MyFolder.Inbox;
+
+        var batchWithUid = await emailService.GetFolderBatchAsync(folderType, skip, take);
+
+        var batch = batchWithUid.Select(x => new
+        {
+            uid = x.Uid.ToString(),
+            from = x.Message.From.Mailboxes.FirstOrDefault()?.Name ?? x.Message.From.Mailboxes.FirstOrDefault()?.Address ?? "Unknown",
+            subject = x.Message.Subject ?? "(No Subject)",
+            preview = x.Message.TextBody != null ? x.Message.TextBody.Substring(0, Math.Min(100, x.Message.TextBody.Length)) : "",
+            date = x.Message.Date.ToLocalTime().ToString("MMM dd, h:mm tt"),
+            hasAttachments = x.Message.Attachments.Any()
+        }).ToList();
+
+        return new JsonResult(new { success = true, messages = batch });
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Failed to load emails via AJAX");
+        return new JsonResult(new { success = false, message = ex.Message });
+    }
+}
+
 
     // AJAX HANDLER — GET SINGLE EMAIL BY UID
     public async Task<JsonResult> OnGetEmailAsync(string uid)

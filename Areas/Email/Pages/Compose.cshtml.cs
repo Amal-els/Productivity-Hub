@@ -42,16 +42,24 @@ namespace TeamProject.Areas.Email.Pages
         [BindProperty]
         public bool IsHtml { get; set; } = true;
 
-        public async Task<IActionResult> OnGetAsync()
-        {
-            _logger.LogInformation("=== OnGetAsync ===");
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+      
+        public async Task<IActionResult> OnGetAsync() 
+        { 
+            var user = await _userManager.GetUserAsync(User); 
+            if (user == null) 
             {
-                _logger.LogWarning("User not found. Redirecting to login.");
-                return RedirectToPage("/Account/Login", new { area = "Identity" });
-            }
+                _logger.LogWarning("User not found"); 
+                return RedirectToPage("/Account/Login", new { area = "Identity" }); 
+            } 
+                // Check if EmailPassword is null or empty 
+            if (string.IsNullOrEmpty(user.EmailPassword)) 
+            { 
+                _logger.LogInformation($"User {user.Email} has no email password set"); 
+                TempData["Info"] = "Please enter your email app password to access your inbox."; 
+                return Redirect("~/Email/Settings"); 
+            } 
             return Page();
+
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -121,7 +129,7 @@ namespace TeamProject.Areas.Email.Pages
                     subject: Subject,
                     body: Body,
                     isHtml: IsHtml,
-                    fromName: user.DisplayName
+                    fromName: user.FullName
                 );
                 
                 _logger.LogInformation("Email sent successfully.");

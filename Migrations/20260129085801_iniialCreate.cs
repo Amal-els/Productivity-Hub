@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TeamProject.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class iniialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -30,7 +30,9 @@ namespace TeamProject.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    DisplayName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    EmailPassword = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -49,6 +51,27 @@ namespace TeamProject.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EmailLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    RecipientEmail = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Subject = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
+                    Body = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    EmailType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    RelatedEventId = table.Column<int>(type: "int", nullable: true),
+                    IsSent = table.Column<bool>(type: "bit", nullable: false),
+                    SentAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ErrorMessage = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EmailLogs", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -158,10 +181,42 @@ namespace TeamProject.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CalendarEvents",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Location = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    IsAllDay = table.Column<bool>(type: "bit", nullable: false),
+                    Color = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    EventType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    HasReminder = table.Column<bool>(type: "bit", nullable: false),
+                    ReminderMinutesBefore = table.Column<int>(type: "int", nullable: false),
+                    ReminderSent = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CalendarEvents", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CalendarEvents_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PomodoroSessions",
                 columns: table => new
                 {
-                    SessionId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -171,11 +226,72 @@ namespace TeamProject.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PomodoroSessions", x => x.SessionId);
+                    table.PrimaryKey("PK_PomodoroSessions", x => x.Id);
                     table.ForeignKey(
                         name: "FK_PomodoroSessions_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "EventParticipants",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CalendarEventId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ResponseStatus = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    ResponseDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsOrganizer = table.Column<bool>(type: "bit", nullable: false),
+                    AddedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EventParticipants", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EventParticipants_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_EventParticipants_CalendarEvents_CalendarEventId",
+                        column: x => x.CalendarEventId,
+                        principalTable: "CalendarEvents",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Meetings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CalendarEventId = table.Column<int>(type: "int", nullable: false),
+                    MeetingLink = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    OrganizerId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    RequiresResponse = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Meetings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Meetings_AspNetUsers_OrganizerId",
+                        column: x => x.OrganizerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Meetings_CalendarEvents_CalendarEventId",
+                        column: x => x.CalendarEventId,
+                        principalTable: "CalendarEvents",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -220,6 +336,44 @@ namespace TeamProject.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CalendarEvents_StartTime",
+                table: "CalendarEvents",
+                column: "StartTime");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CalendarEvents_UserId",
+                table: "CalendarEvents",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EmailLogs_RelatedEventId",
+                table: "EmailLogs",
+                column: "RelatedEventId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventParticipants_CalendarEventId_UserId",
+                table: "EventParticipants",
+                columns: new[] { "CalendarEventId", "UserId" },
+                unique: true,
+                filter: "[UserId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EventParticipants_UserId",
+                table: "EventParticipants",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Meetings_CalendarEventId",
+                table: "Meetings",
+                column: "CalendarEventId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Meetings_OrganizerId",
+                table: "Meetings",
+                column: "OrganizerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PomodoroSessions_UserId",
                 table: "PomodoroSessions",
                 column: "UserId");
@@ -244,10 +398,22 @@ namespace TeamProject.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "EmailLogs");
+
+            migrationBuilder.DropTable(
+                name: "EventParticipants");
+
+            migrationBuilder.DropTable(
+                name: "Meetings");
+
+            migrationBuilder.DropTable(
                 name: "PomodoroSessions");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "CalendarEvents");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

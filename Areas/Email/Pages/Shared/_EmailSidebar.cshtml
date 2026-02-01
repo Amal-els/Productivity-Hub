@@ -300,22 +300,22 @@
     
     <ul class="nav flex-column sidebar-nav">
         <li class="nav-item sidebar-nav-item">
-            <a class="sidebar-nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Email/Index" ? "active" : "")" 
-               asp-page="/Email/Index">
+            <a class="sidebar-nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Home/Index" ? "active" : "")" 
+               asp-page="/Home/Index">
                 <i class="bi bi-house-fill"></i>
                 <span>Home</span>
             </a>
         </li>
         <li class="nav-item sidebar-nav-item">
-            <a class="sidebar-nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Email/Inbox" ? "active" : "")" 
-               asp-page="/Email/Inbox">
+            <a class="sidebar-nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Email/Index" ? "active" : "")" 
+               asp-controller="Email" asp-action="Index">
                 <i class="bi bi-inbox-fill"></i>
                 <span>Inbox</span>
             </a>
         </li>
         <li class="nav-item sidebar-nav-item">
             <a class="sidebar-nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Email/Sent" ? "active" : "")" 
-               asp-page="/Email/Sent">
+               asp-controller="Email" asp-action="Sent">
                 <i class="bi bi-send-fill"></i>
                 <span>Sent</span>
             </a>
