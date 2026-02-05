@@ -1,0 +1,61 @@
+﻿
+
+@{
+    Layout = "_ProductivityLayout";
+}
+
+<div class="d-flex gap-2 mb-4">
+    <button class="btn btn-light rounded-pill filter-btn " data-action="all">All</button>
+    <button class="btn btn-light rounded-pill filter-btn" data-action="active">Active</button>
+    <button class="btn btn-light rounded-pill filter-btn" data-action="GetCompleted">Completed</button>
+    <button class="btn btn-light rounded-pill filter-btn" data-action="create">Add new task</button>
+</div>
+
+<div class="table-responsive bg-white rounded-4 shadow-sm p-3">
+    @RenderBody()
+</div>
+
+<style>
+    .bg-soft-warning { background: #fffbeb; color: #d97706; }
+    .custom-cb { width: 22px; height: 22px; border-radius: 6px; border: 2px solid #667eea; }
+    .row-completed { opacity: 0.6; background-color: #f8fafc; }
+    .table thead th { border-bottom: none; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+</style>
+
+<script>
+    document.querySelectorAll('.filter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'btn-primary');
+                btn.classList.add('btn-light');
+            });
+            
+            // Make the clicked button blue
+            this.classList.remove('btn-light');
+            this.classList.add('active', 'btn-primary');
+            
+            // If it's "Add new task", navigate after showing blue
+            if (this.getAttribute('data-action') === 'create') {
+                setTimeout(function() {
+                    window.location.href = '/toDoTask/Create';
+                }, 200);
+            }
+            if (this.getAttribute('data-action') === 'all') {
+                setTimeout(function() {
+                    window.location.href = '/toDoList/getList?filter=all';
+                }, 200);
+            }
+            if (this.getAttribute('data-action') === 'GetCompleted') {
+                setTimeout(function() {
+                    window.location.href = '/toDoList/getList?filter=completed';
+                }, 200);
+            }
+            if (this.getAttribute('data-action') === 'active') {
+                setTimeout(function() {
+                    window.location.href = '/toDoList/getList?filter=active';
+                }, 200);
+            }
+        });
+    });
+</script>

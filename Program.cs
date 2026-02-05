@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using TeamProject.Data;
+using TeamProject.Services.Interfaces;
+using TeamProject.Services.Implementations;
 
+using TeamProject.Data;
+    
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -13,8 +16,18 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+// Register your services with DI
+builder.Services.AddScoped<ItoDoListService, toDoListService>();
+builder.Services.AddScoped<ItoDoTaskService, toDoTaskService>();
 
+//builder.Services.AddScoped<ItoDoTaskService, toDoTaskService>();
 var app = builder.Build();
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    context.Database.EnsureCreated(); // Crée la base si elle n'existe pas
+  
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

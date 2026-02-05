@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamProject.Data;
 
@@ -11,9 +12,11 @@ using TeamProject.Data;
 namespace TeamProject.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260127094424_datamteei")]
+    partial class datamteei
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,9 +248,11 @@ namespace TeamProject.Data.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("todolist");
                 });
@@ -258,15 +263,12 @@ namespace TeamProject.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool?>("Acheived")
-                        .HasColumnType("bit");
+                    b.Property<string>("Acheived")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("ToDoListId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("dateOfCompletion")
                         .HasColumnType("datetime2");
@@ -274,12 +276,12 @@ namespace TeamProject.Data.Migrations
                     b.Property<DateTime>("dateOfCreation")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("priority")
-                        .HasColumnType("int");
+                    b.Property<Guid?>("toDoListId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ToDoListId");
+                    b.HasIndex("toDoListId");
 
                     b.ToTable("Task");
                 });
@@ -294,13 +296,6 @@ namespace TeamProject.Data.Migrations
 
                     b.Property<string>("EmailPassword")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("toDoListId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasIndex("toDoListId")
-                        .IsUnique()
-                        .HasFilter("[toDoListId] IS NOT NULL");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
                 });
@@ -356,34 +351,27 @@ namespace TeamProject.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TeamProject.Models.toDoTask", b =>
+            modelBuilder.Entity("TeamProject.Models.toDoList", b =>
                 {
-                    b.HasOne("TeamProject.Models.toDoList", "ToDoList")
-                        .WithMany("Tasks")
-                        .HasForeignKey("ToDoListId")
+                    b.HasOne("TeamProject.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ToDoList");
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("TeamProject.Models.ApplicationUser", b =>
+            modelBuilder.Entity("TeamProject.Models.toDoTask", b =>
                 {
-                    b.HasOne("TeamProject.Models.toDoList", "doList")
-                        .WithOne("User")
-                        .HasForeignKey("TeamProject.Models.ApplicationUser", "toDoListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("doList");
+                    b.HasOne("TeamProject.Models.toDoList", null)
+                        .WithMany("Tasks")
+                        .HasForeignKey("toDoListId");
                 });
 
             modelBuilder.Entity("TeamProject.Models.toDoList", b =>
                 {
                     b.Navigation("Tasks");
-
-                    b.Navigation("User")
-                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

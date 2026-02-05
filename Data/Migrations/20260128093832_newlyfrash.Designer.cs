@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamProject.Data;
 
@@ -11,9 +12,11 @@ using TeamProject.Data;
 namespace TeamProject.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260128093832_newlyfrash")]
+    partial class newlyfrash
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,9 +248,11 @@ namespace TeamProject.Data.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("todolist");
                 });
@@ -274,9 +279,6 @@ namespace TeamProject.Data.Migrations
                     b.Property<DateTime>("dateOfCreation")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("priority")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ToDoListId");
@@ -294,13 +296,6 @@ namespace TeamProject.Data.Migrations
 
                     b.Property<string>("EmailPassword")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("toDoListId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasIndex("toDoListId")
-                        .IsUnique()
-                        .HasFilter("[toDoListId] IS NOT NULL");
 
                     b.HasDiscriminator().HasValue("ApplicationUser");
                 });
@@ -356,6 +351,17 @@ namespace TeamProject.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TeamProject.Models.toDoList", b =>
+                {
+                    b.HasOne("TeamProject.Models.ApplicationUser", "User")
+                        .WithMany("toDoList")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TeamProject.Models.toDoTask", b =>
                 {
                     b.HasOne("TeamProject.Models.toDoList", "ToDoList")
@@ -367,23 +373,14 @@ namespace TeamProject.Data.Migrations
                     b.Navigation("ToDoList");
                 });
 
-            modelBuilder.Entity("TeamProject.Models.ApplicationUser", b =>
-                {
-                    b.HasOne("TeamProject.Models.toDoList", "doList")
-                        .WithOne("User")
-                        .HasForeignKey("TeamProject.Models.ApplicationUser", "toDoListId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("doList");
-                });
-
             modelBuilder.Entity("TeamProject.Models.toDoList", b =>
                 {
                     b.Navigation("Tasks");
+                });
 
-                    b.Navigation("User")
-                        .IsRequired();
+            modelBuilder.Entity("TeamProject.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("toDoList");
                 });
 #pragma warning restore 612, 618
         }

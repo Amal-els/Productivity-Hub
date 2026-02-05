@@ -1,0 +1,38 @@
+﻿@model TeamProject.Models.toDoTask 
+
+@{
+    Layout = "_todolistmother";
+}
+
+<div class="todo-section p-4">
+    <div class="add-task-bar shadow-sm p-3 mb-4 bg-white rounded-4">
+
+        <form asp-action="Create" asp-controller="toDoTask" method="post"> <!-- Fixed controller casing -->
+            @Html.AntiForgeryToken()
+
+            <!-- Task Name -->
+            <input asp-for="Name" class="form-control border-0" placeholder="Add a new task..." required />
+            <span asp-validation-for="Name" class="text-danger"></span>
+
+            <div class="d-flex gap-2 mt-2">
+                <!-- Priority -->
+                <select asp-for="Priority" class="form-select w-auto">
+                    <option value="low">Low Priority</option>
+                    <option value="medium" selected>Medium Priority</option>
+                    <option value="high">High Priority</option>
+                </select>
+
+                <!-- Optional: Completion date -->
+                <input asp-for="dateOfCompletion" type="date" class="form-control w-auto" />
+
+                <button type="submit" class="btn btn-primary px-4">+ Add Task</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .bg-soft-warning { background: #fffbeb; color: #d97706; }
+    .custom-cb { width: 22px; height: 22px; border-radius: 6px; border: 2px solid #667eea; }
+    .row-completed { opacity: 0.6; background-color: #f8fafc; }
+</style>
