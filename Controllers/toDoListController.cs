@@ -16,6 +16,7 @@ namespace TeamProject.Controllers
 
         public async Task<IActionResult> getList(string filter )
         {
+            ViewData["CurrentTab"] = "ToDoList";
             var userId = "TEMP_USER_ID"; // later: get from Identity
             var vm = await _toDoListService.GetToDoViewModelForUser(userId, filter);
             return View(vm);
