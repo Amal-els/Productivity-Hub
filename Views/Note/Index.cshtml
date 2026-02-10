@@ -1,0 +1,208 @@
+﻿@model IEnumerable<TeamProject.Models.Note>
+
+@{
+    ViewData["Title"] = "Mes Notes";
+    Layout = "_ProductivityLayout";
+}
+
+<div class="notes-container row " style="height: 90vh;">
+    <!-- Sidebar gauche -->
+    <div class="notes-sidebar col-6">
+        <a asp-action="Create" class="btn-new-note">
+            <i class="bi bi-plus-lg"></i> New Note
+        </a>
+
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchNotes" placeholder="Search notes..." />
+        </div>
+
+        <div class="notes-list" id="notesList">
+            @if (Model.Any())
+            {
+                foreach (var note in Model)
+                {
+                    <div class="note-item" data-note-id="@note.Id">
+                        <h5 class="note-title">@note.Title</h5>
+                        <p class="note-preview">@(note.Content.Length > 50 ? note.Content.Substring(0, 50) + "..." : note.Content)</p>
+                        <small class="note-date">@note.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-notes">
+                    <p>No notes yet</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Zone de contenu droite -->
+    <div class="notes-content col-6">
+        <div class="empty-state">
+            <i class="bi bi-file-text" style="font-size: 80px; color: #ccc;"></i>
+            <p>Select a note to view or create a new one</p>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .notes-container {
+            display: flex;
+            height: calc(100vh - 100px);
+            background: #fff;
+            
+        }
+
+        /* Sidebar */
+        .notes-sidebar {
+            width: 400px;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .btn-new-note {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+
+        .btn-new-note:hover {
+            background: #1d4ed8;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 40px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        /* Liste des notes */
+        .notes-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .note-item {
+            background: white;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+
+        .note-item:hover {
+            border-color: #2563eb;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+        }
+
+        .note-item.active {
+            background: #eff6ff;
+            border-color: #2563eb;
+        }
+
+        .note-title {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .note-preview {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        .note-date {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .no-notes {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+
+        /* Zone de contenu */
+        .notes-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .empty-state p {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Fonctionnalité de recherche
+        document.getElementById('searchNotes').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const noteItems = document.querySelectorAll('.note-item');
+
+            noteItems.forEach(item => {
+                const title = item.querySelector('.note-title').textContent.toLowerCase();
+                const preview = item.querySelector('.note-preview').textContent.toLowerCase();
+
+                if (title.includes(searchTerm) || preview.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
+}

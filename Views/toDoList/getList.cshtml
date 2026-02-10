@@ -1,0 +1,119 @@
+﻿@model TeamProject.Models.ToDoViewModel
+
+@{
+    Layout = "_todolistmother";
+}
+
+
+<table class="table align-middle">
+    <thead class="text-muted">
+    <tr>
+       
+        <th>Activity</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Priority</th> 
+        <th>Achieved</th>
+        <th class="text-end"></th>
+    </tr>
+    </thead>
+
+    <tbody id="task-table-body">
+    @foreach (var task in Model.AllTasks)
+    {
+        <tr class="task-row @(task.Acheived == true ? "row-completed" : "row-active")">
+            
+            <td>
+                <span class="fw-bold">@task.Name</span>
+            </td>
+            <td>
+                @task.dateOfCreation.ToShortDateString()
+            </td> 
+            <td>
+                @(task.dateOfCompletion?.ToShortDateString() ?? "-")
+            </td>
+            <td>
+                @if (task.Priority == Priority.high)
+                {
+                    <span class="badge bg-danger text-white">
+                        @task.Priority</span>
+                }
+                @if (task.Priority == Priority.medium)
+                {
+                    <span class="badge bg-warning text-white">
+                        @task.Priority</span>
+                }
+                @if (task.Priority == Priority.low)
+                {
+                    <span class="badge bg-success text-white">
+                        @task.Priority</span>
+                }
+
+            </td>
+            <td>
+               <form asp-controller="toDoTask" 
+          asp-action="ToggleComplete" 
+          asp-route-taskId="@task.Id" 
+          method="post" 
+          style="display: inline;">
+        @Html.AntiForgeryToken()
+        <input type="checkbox" 
+               class="form-check-input custom-cb" 
+               @(task.Acheived == true ? "checked" : "")
+               onchange="this.form.submit()" />
+    </form>
+            </td>
+
+
+
+
+           
+
+            
+
+            <td class="text-end">
+                <a asp-controller="toDoTask" 
+                   asp-action="Edit" 
+                   asp-route-taskId="@task.Id" 
+                   class="btn btn-sm btn-outline-info me-2">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                    <form asp-controller="toDoTask" 
+                          asp-action="Delete" 
+                          asp-route-taskId="@task.Id" 
+                          method="post" 
+                          style="display: inline"
+                          onsubmit="return confirm('Are you sure you want to delete this task?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> 
+                        </button>
+                    </form>
+                
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+<script>
+    async function deleteTask(id) {
+        if (!confirm('Are you sure you want to delete this task?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/toDoTask/Delete?taskId=${id}`, {  // ← Changed from /Tasks/ to /toDoTask/
+                method: 'POST'  // ← Changed to POST to match your controller
+            });
+
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to delete task');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred');
+        }
+    }
+    
+</script>

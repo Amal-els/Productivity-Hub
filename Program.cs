@@ -1,14 +1,17 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TeamProject.Data;
+using System.Text.Json;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
 using TeamProject.Models;
 using TeamProject.Services;
 using System.Text.Json.Serialization;
 using TeamProject.Services;
 using Microsoft.AspNetCore.Identity.UI.Services;
-
-
+using TeamProject.Services.Implementations;
+using TeamProject.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -19,17 +22,12 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
-
+builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IEmailNotifService, EmailNotifService>();
 
 builder.Services.AddScoped<IReminderService, ReminderService>();
 
 builder.Services.AddHostedService<ReminderBackgroundService>();
-
-builder.Services.AddControllersWithViews();
-
-builder.Services.AddRazorPages();
-
 builder.Services
     .AddControllersWithViews()
     .AddJsonOptions(options =>
@@ -38,11 +36,14 @@ builder.Services
             new JsonStringEnumConverter()
         );
     });
-
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<UserEmailServiceFactory>();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
+// Register your services with DI
+builder.Services.AddScoped<ItoDoListService, toDoListService>();
+builder.Services.AddScoped<ItoDoTaskService, toDoTaskService>();
+builder.Services.AddScoped<INoteService, NoteService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -61,9 +62,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllerRoute(
