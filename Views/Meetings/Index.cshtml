@@ -460,11 +460,14 @@
             .btn-decline:hover {
                 background: #fecaca;
             }
+            a{
+                text-decoration: none;
+            }
     </style>
 }
 
 <div class="meetings-header">
-    <h2 class="meetings-title">👥 My Meetings</h2>
+    <h2 class="meetings-title"> My Meetings</h2>
     <div class="header-actions">
         <a asp-controller="Calendar" asp-action="Create" class="btn btn-primary">
             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -478,7 +481,7 @@
 <div class="stats-grid">
     <a href="@Url.Action("Index", new { filter = "upcoming" })" class="stat-card @(Model.CurrentFilter == "upcoming" ? "active" : "")">
         <div class="stat-header">
-            <div class="stat-icon upcoming">📅</div>
+            
             <div class="stat-count">@Model.UpcomingCount</div>
         </div>
         <div class="stat-label">Upcoming Meetings</div>
@@ -486,7 +489,7 @@
 
     <a href="@Url.Action("Index", new { filter = "pending" })" class="stat-card @(Model.CurrentFilter == "pending" ? "active" : "")">
         <div class="stat-header">
-            <div class="stat-icon pending">⏳</div>
+           
             <div class="stat-count">@Model.PendingCount</div>
         </div>
         <div class="stat-label">Pending Responses</div>
@@ -494,7 +497,7 @@
 
     <a href="@Url.Action("Index", new { filter = "organized" })" class="stat-card @(Model.CurrentFilter == "organized" ? "active" : "")">
         <div class="stat-header">
-            <div class="stat-icon organized">🎯</div>
+            
             <div class="stat-count">@Model.OrganizedCount</div>
         </div>
         <div class="stat-label">Organized Meetings</div>
@@ -502,7 +505,7 @@
 
     <a href="@Url.Action("Index", new { filter = "invitations" })" class="stat-card @(Model.CurrentFilter == "invitations" ? "active" : "")">
         <div class="stat-header">
-            <div class="stat-icon invitations">📭</div>
+            
             <div class="stat-count">@Model.InvitationsCount</div>
         </div>
         <div class="stat-label">All Invitations</div>
