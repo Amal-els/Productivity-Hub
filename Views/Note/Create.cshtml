@@ -1,0 +1,117 @@
+﻿@model TeamProject.Models.Note
+
+@{
+    ViewData["Title"] = "Create Note";
+    Layout = "_ProductivityLayout";
+}
+
+<div class="notes-container row" style="height: 90vh;">
+    <!-- Sidebar gauche (reuse notes list if you want) -->
+    <div class="notes-sidebar col-6">
+        <button class="btn-new-note" disabled>
+            <i class="bi bi-plus-lg"></i> New Note
+        </button>
+
+        <div class="notes-list">
+            <p style="text-align:center; margin-top: 50px; color: #6b7280;">
+                Fill the form to create a new note
+            </p>
+        </div>
+    </div>
+
+    <!-- Formulaire côté droit -->
+    <div class="notes-content col-6">
+        <div class="note-form-container" style="width: 100%; max-width: 500px;">
+            <form asp-action="Create" method="post">
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label">Title</label>
+                    <input asp-for="Title" class="form-control" placeholder="Enter note title" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Content" class="form-label">Content</label>
+                    <textarea asp-for="Content" class="form-control" rows="6" placeholder="Write your note here..."></textarea>
+                    <span asp-validation-for="Content" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn-new-note" style="width: 100%;">Create Note</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .notes-container {
+            display: flex;
+            height: calc(100vh - 100px);
+            background: #fff;
+        }
+
+        /* Sidebar */
+        .notes-sidebar {
+            width: 400px;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .btn-new-note {
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+
+        .btn-new-note:hover {
+            background: #1d4ed8;
+        }
+
+        /* Form container */
+        .note-form-container {
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.05);
+        }
+
+        .form-label {
+            font-weight: 600;
+        }
+
+        .form-control {
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 1px #2563eb;
+        }
+
+        .text-danger {
+            font-size: 12px;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.13/dist/jquery.validate.unobtrusive.min.js"></script>
+}

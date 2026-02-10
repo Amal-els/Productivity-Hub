@@ -4,7 +4,7 @@ using TeamProject.Models;
 
 namespace TeamProject.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -13,6 +13,7 @@ namespace TeamProject.Data
 
         public DbSet<toDoTask> Task { get; set; }
         public DbSet<toDoList> todolist { get; set; }
+        public DbSet<Note> Notes { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -32,7 +33,14 @@ namespace TeamProject.Data
                 .HasOne(t => t.ToDoList)
                 .WithMany(l => l.Tasks)
                 .HasForeignKey(t => t.ToDoListId);
-
+           
+            modelBuilder.Entity<Note>()
+                .HasOne(n => n.User)
+                .WithMany(u => u.Notes)
+                .HasForeignKey(n => n.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+                
 
 
         }

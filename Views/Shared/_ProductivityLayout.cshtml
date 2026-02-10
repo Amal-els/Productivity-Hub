@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <style>
         * {
@@ -258,6 +259,8 @@
                 padding: 24px;
             }
         }
+
+        @await RenderSectionAsync("Styles", required: false)
     </style>
 </head>
 <body>
@@ -290,7 +293,7 @@
                     Calendar
                 </a>
 
-                <a href="@Url.Action("getList", "toDoList")" class="tab-link @(currentTab == "ToDo" ? "active" : "")">
+                <a href="@Url.Action("getList", "toDoList")" class="tab-link @(currentTab == "ToDoList" ? "active" : "")">
                     <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path d="M9 11l3 3L22 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -323,7 +326,7 @@
                     Meetings
                 </a>
 
-                <a href="@Url.Action("Index", "Notes")" class="tab-link @(currentTab == "Notes" ? "active" : "")">
+                <a href="@Url.Action("Index", "Note")" class="tab-link @(currentTab == "Notes" ? "active" : "")">
                     <svg class="tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                         <polyline points="14,2 14,8 20,8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -347,7 +350,7 @@
             </div>
         </div>
     </div>
-
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

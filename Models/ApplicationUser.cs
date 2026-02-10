@@ -8,6 +8,7 @@ public class ApplicationUser: IdentityUser
 {
     public required string DisplayName { get; set; }
     public string? EmailPassword { get; set; }
-    public Guid toDoListId { get; set; }
-    public virtual toDoList doList { get; set; }
+    public Guid? toDoListId { get; set; }
+    public virtual toDoList? doList { get; set; }
+    public virtual ICollection<Note> Notes { get; set; } = new List<Note>();
 }
