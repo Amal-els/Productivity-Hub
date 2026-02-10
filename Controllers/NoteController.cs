@@ -18,13 +18,14 @@ namespace TeamProject.Controllers
             _userManager = userManager;
         }
 
+        // GET: Notes/Index
         public async Task<IActionResult> Index()
         {
-            var devEmail = "dev@local.com";
-            var user = await _userManager.FindByEmailAsync(devEmail);
+            // Get the currently logged-in user
+            var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
-                return Problem("Dev user not found");
+                return Challenge(); // redirect to login if not authenticated
 
             var notes = await _noteService.GetAllNotesForUserAsync(user.Id);
 
@@ -32,6 +33,7 @@ namespace TeamProject.Controllers
             return View(notes);
         }
 
+        // GET: Notes/Create
         [HttpGet]
         public IActionResult Create()
         {
@@ -39,6 +41,7 @@ namespace TeamProject.Controllers
             return View();
         }
 
+        // POST: Notes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Note note)
@@ -46,15 +49,66 @@ namespace TeamProject.Controllers
             if (!ModelState.IsValid)
                 return View(note);
 
-            var devEmail = "dev@local.com";
-            var user = await _userManager.FindByEmailAsync(devEmail);
+            var user = await _userManager.GetUserAsync(User);
 
             if (user == null)
-                return Problem("Dev user not found");
+                return Challenge(); // redirect to login if not authenticated
 
             await _noteService.CreateNoteAsync(note, user.Id);
 
             return RedirectToAction(nameof(Index));
         }
+   
+
+        // POST: Notes/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                return Challenge();
+
+            var note = await _noteService.GetNoteByIdAsync(id);
+
+            if (note == null || note.UserId != user.Id)
+                return NotFound();
+
+            await _noteService.DeleteNoteAsync(note);
+            return RedirectToAction(nameof(Index));
+        }
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var note = await _noteService.GetNoteByIdAsync(id);
+            if (note == null)
+                return NotFound();
+
+            return View(note);
+        }
+
+        // --- EDIT POST ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Note note)
+        {
+            if (id != note.Id)
+                return BadRequest();
+
+            if (!ModelState.IsValid)
+                return View(note);
+
+            var existingNote = await _noteService.GetNoteByIdAsync(id);
+            if (existingNote == null)
+                return NotFound();
+
+            existingNote.Title = note.Title;
+            existingNote.Content = note.Content;
+
+            await _noteService.UpdateNoteAsync(existingNote);
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
+    

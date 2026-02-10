@@ -5,10 +5,10 @@
     Layout = "_ProductivityLayout";
 }
 
-<div class="notes-container row " style="height: 90vh;">
+<div class="notes-container row" style="height: 90vh;">
     <!-- Sidebar gauche -->
     <div class="notes-sidebar col-6">
-        <a asp-action="Create" class="btn-new-note">
+        <a asp-action="Create" class="btn-new-note no-underline">
             <i class="bi bi-plus-lg"></i> New Note
         </a>
 
@@ -22,10 +22,22 @@
             {
                 foreach (var note in Model)
                 {
-                    <div class="note-item" data-note-id="@note.Id">
+                    <div class="note-item" data-note-id="@note.Id" data-full-content="@note.Content.Replace("\"", "&quot;")" style="position: relative;">
                         <h5 class="note-title">@note.Title</h5>
-                        <p class="note-preview">@(note.Content.Length > 50 ? note.Content.Substring(0, 50) + "..." : note.Content)</p>
+                        <p class="note-preview">@((note.Content.Length > 50 ? note.Content.Substring(0, 50) + "..." : note.Content))</p>
                         <small class="note-date">@note.CreatedAt.ToString("dd/MM/yyyy HH:mm")</small>
+
+                        <!-- Trash can link -->
+                        <form asp-action="Delete" asp-route-id="@note.Id" method="post" class="trash-form">
+                            <button type="submit" class="trash-link" onclick="return confirm('Are you sure you want to delete this note?');">
+                                <i class="bi bi-trash-fill" style="color:red; font-size: 18px;"></i>
+                            </button>
+                        </form>
+
+                        <!-- Edit pencil -->
+                        <a asp-action="Edit" asp-route-id="@note.Id" class="edit-link" style="position:absolute; top:10px; right:40px; color:#2563eb;">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
                     </div>
                 }
             }
@@ -39,36 +51,33 @@
     </div>
 
     <!-- Zone de contenu droite -->
-    <div class="notes-content col-6">
+    <div class="notes-content col-6" id="noteContentPanel">
         <div class="empty-state">
             <i class="bi bi-file-text" style="font-size: 80px; color: #ccc;"></i>
-            <p>Select a note to view or create a new one</p>
+            <p>Select a note to view its full details</p>
         </div>
     </div>
 </div>
 
 @section Styles {
     <style>
-        .notes-container {
-            display: flex;
-            height: calc(100vh - 100px);
-            background: #fff;
-            
-        }
+        a.no-underline { text-decoration: none; color: inherit; }
+        a.no-underline:hover { color: #2563eb; text-decoration: none; }
 
-        /* Sidebar */
-        .notes-sidebar {
-            width: 400px;
-            border-right: 1px solid #e0e0e0;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            background: #fafafa;
-        }
+        .trash-form { position: absolute; top: 10px; right: 10px; margin: 0; }
+        .trash-link { background: none; border: none; cursor: pointer; padding: 0; }
 
+        .edit-link { cursor: pointer; font-size: 18px; }
+        .edit-link:hover { color: #1d4ed8; }
+
+        .note-item.active { background: #eff6ff; border-color: #2563eb; }
+
+        /* Container layout */
+        .notes-container { display: flex; height: calc(100vh - 100px); background: #fff; }
+        .notes-sidebar { width: 400px; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; padding: 20px; background: #fafafa; }
         .btn-new-note {
             background: #2563eb;
-            color: white;
+            color: white !important;       /* force white text */
             border: none;
             border-radius: 8px;
             padding: 14px 20px;
@@ -82,127 +91,63 @@
             margin-bottom: 20px;
             transition: background 0.3s;
         }
+        .btn-new-note:hover { background: #1d4ed8; }
+        .search-box { position: relative; margin-bottom: 20px; }
+        .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; }
+        .search-box input { width: 100%; padding: 10px 12px 10px 40px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; background: white; }
+        .search-box input:focus { outline: none; border-color: #2563eb; }
+        .notes-list { flex: 1; overflow-y: auto; }
+        .note-item { background: white; padding: 16px; margin-bottom: 12px; border-radius: 8px; cursor: pointer; border: 1px solid #e5e7eb; transition: all 0.2s; position: relative; }
+        .note-item:hover { border-color: #2563eb; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1); }
+        .note-title { margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #1f2937; }
+        .note-preview { margin: 0 0 8px 0; font-size: 14px; color: #6b7280; line-height: 1.4; }
+        .note-date { color: #9ca3af; font-size: 12px; }
+        .no-notes { text-align: center; padding: 40px 20px; color: #9ca3af; }
 
-        .btn-new-note:hover {
-            background: #1d4ed8;
-        }
-
-        .search-box {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 10px 12px 10px 40px;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            font-size: 14px;
-            background: white;
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: #2563eb;
-        }
-
-        /* Liste des notes */
-        .notes-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .note-item {
-            background: white;
-            padding: 16px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            border: 1px solid #e5e7eb;
-            transition: all 0.2s;
-        }
-
-        .note-item:hover {
-            border-color: #2563eb;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
-        }
-
-        .note-item.active {
-            background: #eff6ff;
-            border-color: #2563eb;
-        }
-
-        .note-title {
-            margin: 0 0 8px 0;
-            font-size: 16px;
-            font-weight: 600;
-            color: #1f2937;
-        }
-
-        .note-preview {
-            margin: 0 0 8px 0;
-            font-size: 14px;
-            color: #6b7280;
-            line-height: 1.4;
-        }
-
-        .note-date {
-            color: #9ca3af;
-            font-size: 12px;
-        }
-
-        .no-notes {
-            text-align: center;
-            padding: 40px 20px;
-            color: #9ca3af;
-        }
-
-        /* Zone de contenu */
-        .notes-content {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: white;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: #6b7280;
-        }
-
-        .empty-state p {
-            margin-top: 20px;
-            font-size: 16px;
-        }
+        /* Right panel */
+        .notes-content { flex: 1; display: flex; flex-direction: column; padding: 20px; background: white; overflow-y: auto; border-left: 1px solid #e0e0e0; }
+        .note-detail { border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px; background: #f9f9f9; }
+        .note-detail h3 { margin-top: 0; font-size: 20px; color: #1f2937; }
+        .note-detail p { font-size: 16px; color: #374151; white-space: pre-wrap; line-height: 1.5; margin-bottom: 12px; }
+        .note-detail small { font-size: 12px; color: #9ca3af; }
+        .empty-state { text-align: center; color: #6b7280; }
+        .empty-state p { margin-top: 20px; font-size: 16px; }
     </style>
 }
 
 @section Scripts {
-    <script>
-        // Fonctionnalité de recherche
-        document.getElementById('searchNotes').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const noteItems = document.querySelectorAll('.note-item');
-
-            noteItems.forEach(item => {
-                const title = item.querySelector('.note-title').textContent.toLowerCase();
-                const preview = item.querySelector('.note-preview').textContent.toLowerCase();
-
-                if (title.includes(searchTerm) || preview.includes(searchTerm)) {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
+<script>
+    // Search notes
+    document.getElementById('searchNotes').addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('.note-item').forEach(item => {
+            const title = item.querySelector('.note-title').textContent.toLowerCase();
+            const preview = item.querySelector('.note-preview').textContent.toLowerCase();
+            item.style.display = title.includes(term) || preview.includes(term) ? 'block' : 'none';
         });
-    </script>
+    });
+
+    // Click note to show full details on right panel
+    document.querySelectorAll('.note-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            if (e.target.closest('.trash-form')) return; // don't open on delete
+            if (e.target.closest('.edit-link')) return;   // don't open on edit click
+
+            const title = item.querySelector('.note-title').textContent;
+            const content = item.dataset.fullContent;
+            const date = item.querySelector('.note-date').textContent;
+
+            document.getElementById('noteContentPanel').innerHTML = `
+                <div class="note-detail">
+                    <h3>${title}</h3>
+                    <p>${content}</p>
+                    <small>Created at: ${date}</small>
+                </div>
+            `;
+
+            document.querySelectorAll('.note-item').forEach(n => n.classList.remove('active'));
+            item.classList.add('active');
+        });
+    });
+</script>
 }
