@@ -126,15 +126,7 @@
         transform: rotate(180deg);
     }
 
-    .email-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-        border: 1px solid rgba(0, 0, 0, 0.06);
-        animation: fadeInUp 0.5s ease-out;
-    }
-
+  
     @@keyframes fadeInUp {
         from {
             opacity: 0;
@@ -250,6 +242,9 @@
         font-weight: 600;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        display: block;
+        margin: 0 auto;
+        
     }
 
     .load-more-btn:hover:not(:disabled) {
@@ -262,10 +257,25 @@
         cursor: not-allowed;
     }
 
-    .loading-indicator {
-        text-align: center;
-        padding: 40px;
-    }
+    .email-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    animation: fadeInUp 0.5s ease-out;
+    width: 100%;
+    position: relative;  /* Add this */
+}
+
+.loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    width: 100%;
+    background: white;  
+}
 
     .spinner-custom {
         width: 48px;
@@ -274,6 +284,7 @@
         border-top-color: #667eea;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
+        
     }
 
     @@keyframes spin {
@@ -281,10 +292,18 @@
     }
 
     /* Modal Styling */
+    .modal-dialog {
+        max-height: calc(100vh - 60px);
+        margin: 30px auto;
+    }
+
     .modal-content {
         border-radius: 20px;
         border: none;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-height: calc(100vh - 60px);
+        display: flex;
+        flex-direction: column;
     }
 
     .modal-header {
@@ -292,6 +311,7 @@
         border-bottom: 2px solid rgba(102, 126, 234, 0.1);
         padding: 24px 32px;
         border-radius: 20px 20px 0 0;
+        flex-shrink: 0;
     }
 
     .modal-title {
@@ -332,6 +352,8 @@
 
     .modal-body {
         padding: 32px;
+        overflow-y: auto;
+        flex: 1 1 auto;
     }
 
     .email-detail-row {
@@ -407,6 +429,7 @@
         border-top: 1px solid rgba(0, 0, 0, 0.06);
         padding: 20px 32px;
         border-radius: 0 0 20px 20px;
+        flex-shrink: 0;
     }
 
     .modal-footer .btn {
@@ -507,11 +530,12 @@
             Load more emails
         </button>
     </div>
+    <div class="loading-indicator" id="loadingIndicator" style="display:none;">
+    <div class="spinner-custom"></div>
+
 </div>
 
-<div class="loading-indicator" id="loadingIndicator" style="display:none;">
-    <div class="spinner-custom"></div>
-</div>
+
 
 <!-- Email Detail Modal -->
 <div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
@@ -580,7 +604,8 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         const modalEl = document.getElementById('emailModal');
-        emailModal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: true });
+        // Changed backdrop to false to allow scrolling behind the modal
+        emailModal = new bootstrap.Modal(modalEl, { backdrop: false, keyboard: true });
 
         // Reset modal when hidden
         modalEl.addEventListener('hidden.bs.modal', () => {
@@ -589,9 +614,7 @@
             document.getElementById('emailError').style.display = 'none';
             document.getElementById('emailAttachments').style.display = 'none';
             document.getElementById('attachmentList').innerHTML = '';
-            // Remove any leftover backdrops
-            document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-            document.body.classList.remove('modal-open');
+            // Removed backdrop cleanup since backdrop is disabled
         });
 
         loadEmails();
@@ -697,9 +720,6 @@
         catch (err) {
             console.error('Failed to mark as read:', err);
         }
-        // Ensure no leftover backdrops
-        document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-        document.body.classList.remove('modal-open');
 
         document.getElementById('emailLoading').style.display = 'block';
         // Attach Reply button behavior (safe binding)

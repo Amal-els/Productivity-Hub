@@ -111,14 +111,24 @@
     }
 
     .email-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-        border: 1px solid rgba(0, 0, 0, 0.06);
-        animation: fadeInUp 0.5s ease-out;
-    }
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    animation: fadeInUp 0.5s ease-out;
+    width: 100%;
+    position: relative;  /* Add this */
+}
 
+.loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    width: 100%;
+    background: white;  
+}
     @@keyframes fadeInUp {
         from {
             opacity: 0;
@@ -234,6 +244,8 @@
         font-weight: 600;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        display: block;
+        margin: 0 auto;
     }
 
     .load-more-btn:hover:not(:disabled) {
@@ -246,10 +258,6 @@
         cursor: not-allowed;
     }
 
-    .loading-indicator {
-        text-align: center;
-        padding: 40px;
-    }
 
     .spinner-custom {
         width: 48px;
@@ -258,6 +266,7 @@
         border-top-color: #667eea;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
+        
     }
 
     @@keyframes spin {
@@ -480,11 +489,12 @@
             Load more emails
         </button>
     </div>
+    <div class="loading-indicator" id="loadingIndicator" style="display:none;">
+    <div class="spinner-custom"></div>
+
 </div>
 
-<div class="loading-indicator" id="loadingIndicator" style="display:none;">
-    <div class="spinner-custom"></div>
-</div>
+
 
 <!-- Sent Email Detail Modal -->
 <div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
