@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using TeamProject.Data;
@@ -11,10 +12,12 @@ namespace TeamProject.Controllers
     public class toDoTaskController : Controller
     {
         private readonly ItoDoTaskService _taskService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public toDoTaskController(ItoDoTaskService taskService)
+        public toDoTaskController(ItoDoTaskService taskService, UserManager<ApplicationUser> userManager)
         {
             _taskService = taskService;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -34,7 +37,7 @@ namespace TeamProject.Controllers
         [ValidateAntiForgeryToken] // ← Add this back for security
         public async Task<IActionResult> Create(toDoTask task)
         {
-            var userId = "TEMP_USER_ID"; // later: Identity
+             var userId = _userManager.GetUserId(User); 
 
             await _taskService.AddTask(userId, task);
 

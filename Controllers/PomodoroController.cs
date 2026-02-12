@@ -59,12 +59,12 @@ public class PomodoroController : Controller
         _context.PomodoroSessions.Add(session);
         await _context.SaveChangesAsync();
 
-        return Ok(new
+        return Json(new
         {
             type = session.Type,
             start = session.StartTime.ToString("HH:mm"),
             end = session.EndTime.ToString("HH:mm"),
-            duration = (session.EndTime - session.StartTime).ToString(@"mm:ss")
+            duration = (session.EndTime - session.StartTime).ToString(@"mm\:ss")
         });
     }
 

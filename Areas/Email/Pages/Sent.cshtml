@@ -2,16 +2,715 @@
 @model TeamProject.Areas.Email.Pages.SentModel
 @{
     ViewData["Title"] = "Sent";
+    Layout = "_EmailLayout";
 }
 
-<h2>
-    <i class="bi bi-send"></i> Sent Messages
-    @if (Model.Messages != null && Model.Messages.Any())
-    {
-        <span class="badge bg-success">@Model.Messages.Count</span>
+<style>
+    .inbox-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        animation: slideDown 0.5s ease-out;
     }
-</h2>
 
-<div class="alert alert-info mt-3" role="alert">
-    <i class="bi bi-info-circle"></i> Sent folder functionality coming soon!
+    @@keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .inbox-title {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .inbox-title h2 {
+        font-size: 28px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .inbox-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 20px;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    .email-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff !important;
+        border: 2px solid white;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 14px;
+        margin-left: 10px;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+        animation: pulse 2s ease-in-out infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+    }
+
+    .refresh-btn {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .refresh-btn:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .refresh-btn i {
+        transition: transform 0.3s ease;
+    }
+
+    .refresh-btn:hover i {
+        transform: rotate(180deg);
+    }
+
+    .email-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    animation: fadeInUp 0.5s ease-out;
+    width: 100%;
+    position: relative;  /* Add this */
+}
+
+.loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    width: 100%;
+    background: white;  
+}
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .email-table {
+        margin: 0;
+    }
+
+    .email-table thead {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+    }
+
+    .email-table thead th {
+        padding: 18px 24px;
+        font-weight: 600;
+        color: #64748b;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border: none;
+    }
+
+    .email-table tbody tr {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .email-table tbody tr:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+        transform: translateX(4px);
+        box-shadow: -4px 0 0 0 #667eea inset;
+    }
+
+    .email-table tbody td {
+        padding: 20px 24px;
+        vertical-align: middle;
+        border: none;
+        font-size: 14px;
+    }
+
+    .email-to {
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .email-subject {
+        color: #334155;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .attachment-icon {
+        color: #667eea;
+        font-size: 16px;
+    }
+
+    .email-date {
+        color: #64748b;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .email-preview {
+        color: #94a3b8;
+        font-size: 13px;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+        color: #94a3b8;
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    .empty-state-text {
+        font-size: 18px;
+        font-weight: 500;
+        color: #64748b;
+    }
+
+    .card-footer-custom {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+        padding: 20px 24px;
+    }
+
+    .load-more-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 32px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        display: block;
+        margin: 0 auto;
+    }
+
+    .load-more-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .load-more-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+
+    .spinner-custom {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(102, 126, 234, 0.1);
+        border-top-color: #667eea;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Modal Styling */
+    .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+        padding: 24px 32px;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .modal-title {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 20px;
+    }
+
+    .btn-close {
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        cursor: pointer;
+    }
+
+    .btn-close:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+    }
+
+    .btn-close:active {
+        transform: translateY(0) !important;
+    }
+
+    .btn-close svg {
+        width: 24px !important;
+        height: 24px !important;
+        flex-shrink: 0;
+    }
+
+    .modal-body {
+        padding: 32px;
+    }
+
+    .email-detail-row {
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .email-detail-row:last-of-type {
+        border-bottom: none;
+    }
+
+    .email-detail-label {
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 6px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .email-detail-value {
+        color: #1e293b;
+        font-size: 15px;
+    }
+
+    .email-body-content {
+        background: rgba(102, 126, 234, 0.02);
+        padding: 24px;
+        border-radius: 12px;
+        margin-top: 24px;
+        line-height: 1.7;
+        color: #334155;
+    }
+
+    .attachments-section {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 2px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .attachments-title {
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 16px;
+        font-size: 16px;
+    }
+
+    .attachment-item {
+        background: white;
+        border: 2px solid rgba(102, 126, 234, 0.1);
+        border-radius: 12px;
+        padding: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .attachment-item:hover {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.02);
+    }
+
+    .attachment-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .modal-footer {
+        background: rgba(0, 0, 0, 0.02);
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
+        padding: 20px 32px;
+        border-radius: 0 0 20px 20px;
+    }
+
+    .modal-footer .btn {
+        padding: 10px 24px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .error-state {
+        text-align: center;
+        padding: 40px;
+    }
+
+    .error-icon {
+        font-size: 64px;
+        color: #ef4444;
+        margin-bottom: 16px;
+    }
+
+    .error-message {
+        color: #64748b;
+        font-size: 15px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .inbox-header {
+            flex-direction: column;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .email-table thead th,
+        .email-table tbody td {
+            padding: 12px 16px;
+            font-size: 13px;
+        }
+
+        .email-preview {
+            display: none;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+    }
+</style>
+
+<div class="inbox-header">
+    <div class="inbox-title">
+        <div class="inbox-icon">
+            <i class="bi bi-send-fill"></i>
+        </div>
+        <h2>
+            Sent
+            <span id="emailCount" class="email-badge">0</span>
+        </h2>
+    </div>
+    <div>
+        <button class="refresh-btn" id="refreshBtn">
+            <i class="bi bi-arrow-clockwise"></i>
+            Refresh
+        </button>
+    </div>
 </div>
+
+<div class="email-card">
+    <div class="table-responsive">
+        <table class="table email-table" id="emailTable">
+            <thead>
+                <tr>
+                    <th>To</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th class="d-none d-lg-table-cell">Preview</th>
+                </tr>
+            </thead>
+            <tbody id="sent-body">
+                <!-- Sent emails will load here dynamically -->
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer-custom">
+        <button id="load-more" class="load-more-btn">
+            <i class="bi bi-arrow-down-circle me-2"></i>
+            Load more emails
+        </button>
+    </div>
+    <div class="loading-indicator" id="loadingIndicator" style="display:none;">
+    <div class="spinner-custom"></div>
+
+</div>
+</div>
+
+
+<!-- Sent Email Detail Modal -->
+<div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emailModalLabel">
+                    <i class="bi bi-envelope-open me-2"></i>Email Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="emailLoading" class="loading-indicator">
+                    <div class="spinner-custom"></div>
+                </div>
+                <div id="emailContent" style="display: none;">
+                    <div class="email-detail-row">
+                        <div class="email-detail-label">To</div>
+                        <div class="email-detail-value" id="emailTo"></div>
+                    </div>
+                    <div class="email-detail-row">
+                        <div class="email-detail-label">Date</div>
+                        <div class="email-detail-value" id="emailDate"></div>
+                    </div>
+                    <div class="email-detail-row">
+                        <div class="email-detail-label">Subject</div>
+                        <div class="email-detail-value" id="emailSubject"></div>
+                    </div>
+                    <div class="email-body-content" id="emailBody"></div>
+                    <div id="emailAttachments" class="attachments-section" style="display: none;">
+                        <h6 class="attachments-title">
+                            <i class="bi bi-paperclip me-2"></i>Attachments
+                        </h6>
+                        <ul id="attachmentList" class="list-group"></ul>
+                    </div>
+                </div>
+                <div id="emailError" class="error-state" style="display: none;">
+                    <div class="error-icon">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <p class="error-message" id="errorMessage"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let skip = 0;
+    const take = 5;
+    let allLoaded = false;
+    let emailModal;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalEl = document.getElementById('emailModal');
+        emailModal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: true });
+
+        // Reset modal when hidden
+        modalEl.addEventListener('hidden.bs.modal', () => {
+            document.getElementById('emailLoading').style.display = 'block';
+            document.getElementById('emailContent').style.display = 'none';
+            document.getElementById('emailError').style.display = 'none';
+            document.getElementById('emailAttachments').style.display = 'none';
+            document.getElementById('attachmentList').innerHTML = '';
+            document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+            document.body.classList.remove('modal-open');
+        });
+
+        loadEmails();
+
+        document.getElementById('load-more').addEventListener('click', loadEmails);
+        document.getElementById('refreshBtn').addEventListener('click', () => {
+            skip = 0;
+            allLoaded = false;
+            document.getElementById('sent-body').innerHTML = '';
+            document.getElementById('load-more').style.display = 'block';
+            loadEmails();
+        });
+    });
+
+    async function loadEmails() {
+        if (allLoaded) return;
+
+        document.getElementById('loadingIndicator').style.display = 'block';
+        document.getElementById('load-more').disabled = true;
+
+        try {
+            const res = await fetch(`?handler=LoadSentEmails&skip=${skip}&take=${take}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+
+            const tbody = document.getElementById('sent-body');
+            if (data.messages.length === 0) {
+                allLoaded = true;
+                document.getElementById('load-more').style.display = 'none';
+                if (skip === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <div class="empty-state-icon">📤</div>
+                                <div class="empty-state-text">No sent emails found</div>
+                            </td>
+                        </tr>
+                    `;
+                }
+                return;
+            }
+
+            data.messages.forEach(msg => {
+                const row = document.createElement('tr');
+                row.dataset.uid = msg.uid;
+                row.innerHTML = `
+                    <td class="email-to">${escapeHtml(msg.to)}</td>
+                    <td class="email-subject">
+                        ${escapeHtml(msg.subject)}
+                        ${msg.hasAttachments ? '<i class="bi bi-paperclip attachment-icon"></i>' : ''}
+                    </td>
+                    <td class="email-date">${escapeHtml(msg.date)}</td>
+                    <td class="email-preview d-none d-lg-table-cell">${escapeHtml(msg.preview)}</td>
+                `;
+                row.addEventListener('click', () => openEmail(msg.uid));
+                tbody.appendChild(row);
+            });
+
+            skip += take;
+            document.getElementById('emailCount').textContent = skip;
+            if (data.messages.length < take) {
+                allLoaded = true;
+                document.getElementById('load-more').style.display = 'none';
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert('Failed to load sent emails: ' + err.message);
+        } finally {
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('load-more').disabled = false;
+        }
+    }
+
+    async function openEmail(uid) {
+        emailModal.show();
+        document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+        document.body.classList.remove('modal-open');
+
+        document.getElementById('emailLoading').style.display = 'block';
+        document.getElementById('emailContent').style.display = 'none';
+        document.getElementById('emailError').style.display = 'none';
+        document.getElementById('emailAttachments').style.display = 'none';
+        document.getElementById('attachmentList').innerHTML = '';
+
+        try {
+            const res = await fetch(`?handler=Email&uid=${encodeURIComponent(uid)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+
+            const email = data.email;
+            document.getElementById('emailTo').textContent = email.to;
+            document.getElementById('emailDate').textContent = email.date;
+            document.getElementById('emailSubject').textContent = email.subject;
+
+            if (email.htmlBody) {
+                document.getElementById('emailBody').innerHTML = email.htmlBody;
+            } else {
+                document.getElementById('emailBody').textContent = email.body;
+            }
+
+            const attachmentList = document.getElementById('attachmentList');
+            if (email.hasAttachments && email.attachments.length > 0) {
+                attachmentList.innerHTML = email.attachments.map(att => `
+                    <li class="list-group-item attachment-item d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="bi bi-file-earmark me-2"></i>
+                            ${escapeHtml(att.fileName)}
+                        </span>
+                        <span class="attachment-badge">${formatFileSize(att.size)}</span>
+                    </li>`).join('');
+                document.getElementById('emailAttachments').style.display = 'block';
+            }
+
+            document.getElementById('emailLoading').style.display = 'none';
+            document.getElementById('emailContent').style.display = 'block';
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('emailLoading').style.display = 'none';
+            document.getElementById('emailError').style.display = 'block';
+            document.getElementById('errorMessage').textContent = 'Failed to load email: ' + err.message;
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+</script>
+}

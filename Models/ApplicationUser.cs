@@ -13,6 +13,10 @@ namespace TeamProject.Models;
         public string? LastName { get; set; }
 
         public string FullName => $"{FirstName} {LastName}".Trim();
+
+
+        public string? ContactsSheetId{ get; set; }
+        // Navigation properties
         public Guid? toDoListId { get; set; }
         public virtual toDoList? doList { get; set; }
         public virtual ICollection<Note> Notes { get; set; }

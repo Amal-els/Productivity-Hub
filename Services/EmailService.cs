@@ -167,40 +167,69 @@ namespace TeamProject.Services
                 throw;
             }
         }
-        public async Task<List<EmailWithUid>> GetInboxBatchAsync(int skip, int take)
+        public async Task<List<EmailWithUid>> GetFolderBatchAsync(MyFolder folderType, int skip, int take)
         {
             using var client = new ImapClient();
-            await client.ConnectAsync(_imapServer, _imapPort, MailKit.Security.SecureSocketOptions.SslOnConnect);
+            await client.ConnectAsync(_imapServer, _imapPort, SecureSocketOptions.SslOnConnect);
             await client.AuthenticateAsync(_email, _password);
 
-            var inbox = client.Inbox;
-            await inbox.OpenAsync(FolderAccess.ReadOnly);
+            var folder = await GetFolderAsync(client, folderType);
+            await folder.OpenAsync(FolderAccess.ReadOnly);
 
-            // Get all UIDs in the folder
-            var uids = await inbox.SearchAsync(MailKit.Search.SearchQuery.All);
-
-            // Order descending (latest first)
+            var uids = await folder.SearchAsync(SearchQuery.All);
             var orderedUids = uids.OrderByDescending(u => u.Id).ToList();
-
-            // Apply skip/take
             var batchUids = orderedUids.Skip(skip).Take(take).ToList();
 
             var messages = new List<EmailWithUid>();
             foreach (var uid in batchUids)
             {
-                var message = await inbox.GetMessageAsync(uid);
-                messages.Add(new EmailWithUid
-                {
-                    Uid = uid,
-                    Message = message
-                });
+                var message = await folder.GetMessageAsync(uid);
+                messages.Add(new EmailWithUid { Uid = uid, Message = message });
             }
 
             await client.DisconnectAsync(true);
             return messages;
         }
 
-        public async Task<MimeMessage?> GetEmailByUidAsync(string uid)
+
+        // ================= FETCH SENT EMAILS =================
+        public async Task<List<MimeMessage>> GetSentAsync(int maxCount = 50)
+        {
+            using var client = new ImapClient();
+            try
+            {
+                Console.WriteLine($"Connecting to {_imapServer}:{_imapPort} as {_email}");
+                await client.ConnectAsync(_imapServer, _imapPort, SecureSocketOptions.SslOnConnect);
+
+                await client.AuthenticateAsync(_email, _password);
+                Console.WriteLine("Authenticated successfully!");
+
+                var sentFolder = await GetFolderAsync(client, MyFolder.Sent);
+                await sentFolder.OpenAsync(FolderAccess.ReadOnly);
+
+                Console.WriteLine($"Sent folder has {sentFolder.Count} messages.");
+
+                var messages = new List<MimeMessage>();
+                int start = Math.Max(0, sentFolder.Count - maxCount);
+
+                for (int i = start; i < sentFolder.Count; i++)
+                {
+                    var message = await sentFolder.GetMessageAsync(i);
+                    messages.Add(message);
+                    Console.WriteLine($"Fetched: {message.Subject} to {message.To}");
+                }
+
+                await client.DisconnectAsync(true);
+                return messages;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to fetch sent emails: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<MimeMessage?> GetEmailByUidAsync(string uid, MyFolder folderType = MyFolder.Inbox)
         {
             if (string.IsNullOrEmpty(uid))
                 return null;
@@ -209,21 +238,16 @@ namespace TeamProject.Services
 
             try
             {
-                // Connect to IMAP server with SSL (true)
                 await client.ConnectAsync(_imapServer, _imapPort, true);
-
-                // Authenticate
                 await client.AuthenticateAsync(_email, _password);
 
-                var inbox = client.Inbox;
-                await inbox.OpenAsync(FolderAccess.ReadOnly);
+                var folder = await GetFolderAsync(client, folderType);
+                await folder.OpenAsync(FolderAccess.ReadOnly);
 
-                // Convert string UID to UniqueId
                 if (!UniqueId.TryParse(uid, out UniqueId messageUid))
                     return null;
 
-                // Get the email by UID
-                var message = await inbox.GetMessageAsync(messageUid);
+                var message = await folder.GetMessageAsync(messageUid);
 
                 return message;
             }
@@ -232,5 +256,38 @@ namespace TeamProject.Services
                 await client.DisconnectAsync(true);
             }
         }
+
+        
+
+
+        public async Task MarkEmailAsReadAsync(string uid, MyFolder folderType = MyFolder.Inbox)
+        {
+            if (string.IsNullOrEmpty(uid))
+                throw new ArgumentException("UID cannot be null or empty.", nameof(uid));
+
+            using var client = new ImapClient();
+            try
+            {
+                // Connect and authenticate
+                await client.ConnectAsync(_imapServer, _imapPort, SecureSocketOptions.SslOnConnect);
+                await client.AuthenticateAsync(_email, _password);
+
+                // Open the folder in ReadWrite mode
+                var folder = await GetFolderAsync(client, folderType);
+                await folder.OpenAsync(FolderAccess.ReadWrite);
+
+                // Parse UID
+                if (!UniqueId.TryParse(uid, out UniqueId messageUid))
+                    throw new ArgumentException("Invalid UID format.", nameof(uid));
+
+                // Add the \Seen flag
+                await folder.AddFlagsAsync(messageUid, MessageFlags.Seen, true);
+            }
+            finally
+            {
+                await client.DisconnectAsync(true);
+            }
+        }
+
     }
 }

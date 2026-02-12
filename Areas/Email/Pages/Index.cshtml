@@ -68,9 +68,23 @@
         margin-left: 10px;
         text-shadow: 0 1px 2px rgba(0,0,0,0.25);
         animation: pulse 2s ease-in-out infinite;
-
     }
 
+    .email-row {
+        transition: all 0.3s ease;
+    }
+
+    .email-row.unread .email-from,
+    .email-row.unread .email-subject {
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .email-row.read .email-from,
+    .email-row.read .email-subject {
+        font-weight: 400;
+        color: #64748b;
+    }
 
     @@keyframes pulse {
         0%, 100% {
@@ -112,15 +126,7 @@
         transform: rotate(180deg);
     }
 
-    .email-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-        border: 1px solid rgba(0, 0, 0, 0.06);
-        animation: fadeInUp 0.5s ease-out;
-    }
-
+  
     @@keyframes fadeInUp {
         from {
             opacity: 0;
@@ -236,6 +242,9 @@
         font-weight: 600;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        display: block;
+        margin: 0 auto;
+        
     }
 
     .load-more-btn:hover:not(:disabled) {
@@ -248,10 +257,25 @@
         cursor: not-allowed;
     }
 
-    .loading-indicator {
-        text-align: center;
-        padding: 40px;
-    }
+    .email-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    animation: fadeInUp 0.5s ease-out;
+    width: 100%;
+    position: relative;  /* Add this */
+}
+
+.loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    width: 100%;
+    background: white;  
+}
 
     .spinner-custom {
         width: 48px;
@@ -260,6 +284,7 @@
         border-top-color: #667eea;
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
+        
     }
 
     @@keyframes spin {
@@ -267,10 +292,18 @@
     }
 
     /* Modal Styling */
+    .modal-dialog {
+        max-height: calc(100vh - 60px);
+        margin: 30px auto;
+    }
+
     .modal-content {
         border-radius: 20px;
         border: none;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-height: calc(100vh - 60px);
+        display: flex;
+        flex-direction: column;
     }
 
     .modal-header {
@@ -278,6 +311,7 @@
         border-bottom: 2px solid rgba(102, 126, 234, 0.1);
         padding: 24px 32px;
         border-radius: 20px 20px 0 0;
+        flex-shrink: 0;
     }
 
     .modal-title {
@@ -287,18 +321,39 @@
     }
 
     .btn-close {
-        background: transparent;
-        opacity: 0.5;
-        transition: all 0.3s ease;
+        width: 50px !important;
+        height: 50px !important;
+        border-radius: 50% !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        cursor: pointer;
     }
 
     .btn-close:hover {
-        opacity: 1;
-        transform: rotate(90deg);
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
+    }
+
+    .btn-close:active {
+        transform: translateY(0) !important;
+    }
+
+    .btn-close svg {
+        width: 24px !important;
+        height: 24px !important;
+        flex-shrink: 0;
     }
 
     .modal-body {
         padding: 32px;
+        overflow-y: auto;
+        flex: 1 1 auto;
     }
 
     .email-detail-row {
@@ -374,6 +429,7 @@
         border-top: 1px solid rgba(0, 0, 0, 0.06);
         padding: 20px 32px;
         border-radius: 0 0 20px 20px;
+        flex-shrink: 0;
     }
 
     .modal-footer .btn {
@@ -456,15 +512,15 @@
     <div class="table-responsive">
         <table class="table email-table" id="emailTable">
             <thead>
-                <tr>
-                    <th>From</th>
-                    <th>Subject</th>
-                    <th>Date</th>
-                    <th class="d-none d-lg-table-cell">Preview</th>
-                </tr>
+            <tr>
+                <th>From</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th class="d-none d-lg-table-cell">Preview</th>
+            </tr>
             </thead>
             <tbody id="inbox-body">
-                <!-- Emails will load here dynamically -->
+            <!-- Emails will load here dynamically -->
             </tbody>
         </table>
     </div>
@@ -474,11 +530,12 @@
             Load more emails
         </button>
     </div>
+    <div class="loading-indicator" id="loadingIndicator" style="display:none;">
+        <div class="spinner-custom"></div>
+
+    </div>
 </div>
 
-<div class="loading-indicator" id="loadingIndicator" style="display:none;">
-    <div class="spinner-custom"></div>
-</div>
 
 <!-- Email Detail Modal -->
 <div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
@@ -547,7 +604,8 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         const modalEl = document.getElementById('emailModal');
-        emailModal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: true });
+        // Changed backdrop to false to allow scrolling behind the modal
+        emailModal = new bootstrap.Modal(modalEl, { backdrop: false, keyboard: true });
 
         // Reset modal when hidden
         modalEl.addEventListener('hidden.bs.modal', () => {
@@ -556,9 +614,7 @@
             document.getElementById('emailError').style.display = 'none';
             document.getElementById('emailAttachments').style.display = 'none';
             document.getElementById('attachmentList').innerHTML = '';
-            // Remove any leftover backdrops
-            document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-            document.body.classList.remove('modal-open');
+            // Removed backdrop cleanup since backdrop is disabled
         });
 
         loadEmails();
@@ -607,6 +663,13 @@
             data.messages.forEach(msg => {
                 const row = document.createElement('tr');
                 row.dataset.uid = msg.uid;
+                row.classList.add('email-row');
+                if (msg.seen) {
+                    row.classList.add('read');
+                } 
+                else {
+                    row.classList.add('unread');
+                }
                 row.innerHTML = `
                     <td class="email-from">${escapeHtml(msg.from)}</td>
                     <td class="email-subject">
@@ -616,7 +679,7 @@
                     <td class="email-date">${escapeHtml(msg.date)}</td>
                     <td class="email-preview d-none d-lg-table-cell">${escapeHtml(msg.preview)}</td>
                 `;
-                row.addEventListener('click', () => openEmail(msg.uid));
+                row.addEventListener('click', () => openEmail(msg.uid, row));
                 tbody.appendChild(row);
             });
 
@@ -636,11 +699,27 @@
         }
     }
 
-    async function openEmail(uid) {
+    async function openEmail(uid, row) {
+        
+        if(row) {
+            row.classList.remove('unread');
+            row.classList.add('read');
+        }
         emailModal.show();
-        // Ensure no leftover backdrops
-        document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
-        document.body.classList.remove('modal-open');
+
+        try {
+            await fetch('?handler=MarkAsRead', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify(uid)
+            });
+        }
+        catch (err) {
+            console.error('Failed to mark as read:', err);
+        }
 
         document.getElementById('emailLoading').style.display = 'block';
         // Attach Reply button behavior (safe binding)
