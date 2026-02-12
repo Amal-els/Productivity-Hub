@@ -35,9 +35,15 @@ namespace TeamProject.Controllers
                            s.StartTime >= weekAgo && 
                            s.StartTime < today.AddDays(1))
                 .ToListAsync();
-            var meetingsToday = await _context.Meetings
-                .Where(m => m.CalendarEvent.UserId == userId && 
-                           m.CalendarEvent.StartTime == today)
+            var todayStart = DateTime.Today;
+            var todayEnd = DateTime.Today.AddDays(1);
+
+            var meetingsToday = await _context.CalendarEvents
+                .Include(e => e.Meeting)
+                .Where(e => e.UserId == userId && 
+                        e.StartTime >= todayStart && 
+                        e.StartTime < todayEnd &&
+                        e.Meeting != null)
                 .CountAsync();
 
             
@@ -71,53 +77,66 @@ namespace TeamProject.Controllers
                 .FirstOrDefaultAsync(u => u.Id == userId);
             
             // Tasks Statistics
-            if (user?.doList != null)
+             var userTodoList = await _context.Set<toDoList>()
+                .Include(l => l.Tasks)
+                .FirstOrDefaultAsync(l => l.UserId == userId);
+            
+            if (userTodoList != null && userTodoList.Tasks != null)
             {
-                // Get pending tasks (not achieved)
-                var pendingTasks = user.doList.Tasks
-                    .Where(t => t.Acheived != true)
-                    .ToList();
-                
-                // Total pending tasks
-                ViewBag.TotalTasks = pendingTasks.Count;
-                
-                // Tasks due today (using dateOfCompletion as due date)
-                ViewBag.TasksDueToday = pendingTasks
-                    .Where(t => t.dateOfCompletion.HasValue && 
-                               t.dateOfCompletion.Value.Date == DateTime.Today)
+                // Tasks due TODAY that are NOT finished
+                ViewBag.TasksDueToday = userTodoList.Tasks
+                    .Where(t => t.Acheived != true && 
+                            t.dateOfCompletion.HasValue && 
+                            t.dateOfCompletion.Value.Date == DateTime.Today)
                     .Count();
-                
-                // Weekly tasks completed data for the chart
+
+                ViewBag.TotalTasks = userTodoList.Tasks
+                    .Where(t => t.Acheived != true)
+                    .Count();
+
+                // Weekly graph: finished tasks whose due date falls in the last 7 days
                 var weeklyTasksData = new int[7];
                 for (int i = 0; i < 7; i++)
                 {
                     var date = DateTime.Today.AddDays(-6 + i);
-                    weeklyTasksData[i] = user.doList.Tasks
+                    weeklyTasksData[i] = userTodoList.Tasks
                         .Where(t => t.Acheived == true && 
-                                   t.dateOfCompletion.HasValue &&
-                                   t.dateOfCompletion.Value.Date == date)
+                                t.dateOfCompletion.HasValue &&
+                                t.dateOfCompletion.Value.Date == date)
                         .Count();
                 }
                 ViewBag.WeeklyTasksData = weeklyTasksData;
             }
             else
             {
-                // No todo list exists for user yet
                 ViewBag.TotalTasks = 0;
                 ViewBag.TasksDueToday = 0;
                 ViewBag.WeeklyTasksData = new int[7];
             }
 
+            // Get all notes for the user
+            var allNotes = await _context.Notes
+                .Where(n => n.UserId == userId)
+                .ToListAsync();
+            
+            // Total notes count
+            var notesCount = allNotes.Count;
+            
+            // Notes created this week (last 7 days)
+            var notesThisWeek = allNotes
+                .Where(n => n.CreatedAt >= weekAgo && n.CreatedAt < today.AddDays(1))
+                .Count();
+            
+            // Weekly notes data for chart (if you want to add a chart later)
+            
             // Pass data to view
             ViewBag.TodayPomodoros = todayPomodoros;
             ViewBag.PomodoroIncrease = pomodoroIncrease;
            // ViewBag.TasksDueToday = tasksDueToday;
             ViewBag.MeetingsToday = meetingsToday;
-            //ViewBag.MinutesUntilNextMeeting = minutesUntilNextMeeting;
-            //ViewBag.NotesCount = notesCount;
-           // ViewBag.NotesThisWeek = notesThisWeek;
+            ViewBag.NotesCount = notesCount;
+            ViewBag.NotesThisWeek = notesThisWeek;
             ViewBag.WeeklyPomodoroData = weeklyData.PomodoroSessions;
-            //ViewBag.WeeklyTasksData = weeklyData.TasksCompleted;
             return View();
         }
 
