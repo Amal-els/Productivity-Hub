@@ -74,6 +74,80 @@ namespace TeamProject.Migrations
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUser", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("nvarchar(21)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("NormalizedEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("NormalizedUserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserName")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NormalizedEmail")
+                        .HasDatabaseName("EmailIndex");
+
+                    b.HasIndex("NormalizedUserName")
+                        .IsUnique()
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasDiscriminator().HasValue("IdentityUser");
+
+                    b.UseTphMappingStrategy();
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
                     b.Property<int>("Id")
@@ -436,6 +510,39 @@ namespace TeamProject.Migrations
                     b.ToTable("Meetings");
                 });
 
+            modelBuilder.Entity("TeamProject.Models.Note", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Notes");
+                });
+
             modelBuilder.Entity("TeamProject.Models.PomodoroSession", b =>
                 {
                     b.Property<int>("Id")
@@ -467,6 +574,82 @@ namespace TeamProject.Migrations
                     b.ToTable("PomodoroSessions");
                 });
 
+            modelBuilder.Entity("TeamProject.Models.toDoList", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("todolist");
+                });
+
+            modelBuilder.Entity("TeamProject.Models.toDoTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool?>("Acheived")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ToDoListId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("dateOfCompletion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("dateOfCreation")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ToDoListId");
+
+                    b.ToTable("Task");
+                });
+
+            modelBuilder.Entity("TeamProject.Models.ApplicationUser", b =>
+                {
+                    b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
+
+                    b.Property<string>("EmailPassword")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FirstName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LastName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid?>("toDoListId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasIndex("toDoListId")
+                        .IsUnique()
+                        .HasFilter("[toDoListId] IS NOT NULL");
+
+                    b.HasDiscriminator().HasValue("ApplicationUser");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -478,7 +661,7 @@ namespace TeamProject.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("TeamProject.Models.ApplicationUser", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -487,7 +670,7 @@ namespace TeamProject.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("TeamProject.Models.ApplicationUser", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -502,7 +685,7 @@ namespace TeamProject.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TeamProject.Models.ApplicationUser", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -511,7 +694,7 @@ namespace TeamProject.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("TeamProject.Models.ApplicationUser", null)
+                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -566,6 +749,16 @@ namespace TeamProject.Migrations
                     b.Navigation("Organizer");
                 });
 
+            modelBuilder.Entity("TeamProject.Models.Note", b =>
+                {
+                    b.HasOne("TeamProject.Models.ApplicationUser", "User")
+                        .WithMany("Notes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("TeamProject.Models.PomodoroSession", b =>
                 {
                     b.HasOne("TeamProject.Models.ApplicationUser", "User")
@@ -577,13 +770,25 @@ namespace TeamProject.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TeamProject.Models.toDoTask", b =>
+                {
+                    b.HasOne("TeamProject.Models.toDoList", "ToDoList")
+                        .WithMany("Tasks")
+                        .HasForeignKey("ToDoListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ToDoList");
+                });
+
             modelBuilder.Entity("TeamProject.Models.ApplicationUser", b =>
                 {
-                    b.Navigation("CalendarEvents");
+                    b.HasOne("TeamProject.Models.toDoList", "doList")
+                        .WithOne("User")
+                        .HasForeignKey("TeamProject.Models.ApplicationUser", "toDoListId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                    b.Navigation("EventParticipations");
-
-                    b.Navigation("OrganizedMeetings");
+                    b.Navigation("doList");
                 });
 
             modelBuilder.Entity("TeamProject.Models.CalendarEvent", b =>
@@ -592,6 +797,25 @@ namespace TeamProject.Migrations
                         .IsRequired();
 
                     b.Navigation("Participants");
+                });
+
+            modelBuilder.Entity("TeamProject.Models.toDoList", b =>
+                {
+                    b.Navigation("Tasks");
+
+                    b.Navigation("User")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TeamProject.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("CalendarEvents");
+
+                    b.Navigation("EventParticipations");
+
+                    b.Navigation("Notes");
+
+                    b.Navigation("OrganizedMeetings");
                 });
 #pragma warning restore 612, 618
         }
