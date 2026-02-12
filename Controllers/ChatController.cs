@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TeamProject.Services.Implementations;
 using TeamProject.Models;
+using TeamProject.Models.Dtos;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+
 namespace TeamProject.Controllers
 {
     public class ChatController : Controller
@@ -13,8 +17,11 @@ namespace TeamProject.Controllers
         }
 
         public IActionResult Index()
-        {    ViewData["CurrentTab"] = "Assistant";
+        {
+            ViewData["CurrentTab"] = "Assistant";
             return View();
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> SendMessage([FromBody] ChatRequest request)
@@ -28,3 +35,5 @@ namespace TeamProject.Controllers
 
     }
 }
+    
+    
