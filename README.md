@@ -1,6 +1,6 @@
 ﻿# THE DAG HUB
 
-THE DAG HUB is a smart  ASP.NET Core MVC web application that helps users manage their work , activities and meetings and track their productivity level.
+THE DAG HUB is a smart  ASP.NET Core MVC web application powered with AI that helps users manage their work , activities and meetings and track their productivity level.
 
 ---
 
