@@ -65,10 +65,52 @@ namespace TeamProject.Controllers
                     .ToList(),
             };
 
+              var user = await _userManager.Users
+                .Include(u => u.doList)
+                    .ThenInclude(l => l.Tasks)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+            
+            // Tasks Statistics
+            if (user?.doList != null)
+            {
+                // Get pending tasks (not achieved)
+                var pendingTasks = user.doList.Tasks
+                    .Where(t => t.Acheived != true)
+                    .ToList();
+                
+                // Total pending tasks
+                ViewBag.TotalTasks = pendingTasks.Count;
+                
+                // Tasks due today (using dateOfCompletion as due date)
+                ViewBag.TasksDueToday = pendingTasks
+                    .Where(t => t.dateOfCompletion.HasValue && 
+                               t.dateOfCompletion.Value.Date == DateTime.Today)
+                    .Count();
+                
+                // Weekly tasks completed data for the chart
+                var weeklyTasksData = new int[7];
+                for (int i = 0; i < 7; i++)
+                {
+                    var date = DateTime.Today.AddDays(-6 + i);
+                    weeklyTasksData[i] = user.doList.Tasks
+                        .Where(t => t.Acheived == true && 
+                                   t.dateOfCompletion.HasValue &&
+                                   t.dateOfCompletion.Value.Date == date)
+                        .Count();
+                }
+                ViewBag.WeeklyTasksData = weeklyTasksData;
+            }
+            else
+            {
+                // No todo list exists for user yet
+                ViewBag.TotalTasks = 0;
+                ViewBag.TasksDueToday = 0;
+                ViewBag.WeeklyTasksData = new int[7];
+            }
+
             // Pass data to view
             ViewBag.TodayPomodoros = todayPomodoros;
             ViewBag.PomodoroIncrease = pomodoroIncrease;
-            //ViewBag.TotalTasks = totalTasks;
            // ViewBag.TasksDueToday = tasksDueToday;
             ViewBag.MeetingsToday = meetingsToday;
             //ViewBag.MinutesUntilNextMeeting = minutesUntilNextMeeting;
