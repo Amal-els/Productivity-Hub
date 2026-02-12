@@ -44,6 +44,10 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<ItoDoListService, toDoListService>();
 builder.Services.AddScoped<ItoDoTaskService, toDoTaskService>();
 builder.Services.AddScoped<INoteService, NoteService>();
+builder.Services.AddHttpClient<ChatService>(client =>
+{
+    client.BaseAddress = new Uri("http://127.0.0.1:8000"); // Your FastAPI URL
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
